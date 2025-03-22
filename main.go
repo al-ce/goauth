@@ -7,13 +7,16 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
 
-	"gofit/initializers"
+	"gofit/internal/config"
+	"gofit/internal/database"
+	"gofit/pkg/logger"
 )
 
 func init() {
-	initializers.SetupLogger()
-	initializers.LoadEnvVariables()
-	initializers.ConnectToDB()
+	logger.SetupLogger()
+	config.LoadEnvVariables()
+	database.ConnectToDB()
+	database.Migrate()
 }
 
 func setupRouter() *gin.Engine {

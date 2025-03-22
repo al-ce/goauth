@@ -1,4 +1,4 @@
-package initializers
+package config
 
 import (
 	"github.com/joho/godotenv"
@@ -11,3 +11,4 @@ func LoadEnvVariables() {
 		log.Fatal().Err(err).Msg("Error loading env file")
 	}
 }
+

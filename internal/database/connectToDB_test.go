@@ -1,14 +1,16 @@
-package initializers
+package database
 
 import (
 	"os"
 	"testing"
 
 	"github.com/matryer/is"
+
+	"gofit/internal/config"
 )
 
 func TestMain(m *testing.M) {
-	LoadEnvVariables()
+	config.LoadEnvVariables()
 	ConnectToDB()
 
 	os.Exit(m.Run())
