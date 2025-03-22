@@ -15,14 +15,17 @@ func init() {
 	initializers.LoadEnvVariables()
 }
 
+func setupRouter() *gin.Engine {
+	router := gin.Default()
+	router.GET("/ping", func(c *gin.Context) {
+		c.String(http.StatusOK, "pong")
+	})
+	return router
+}
+
 func main() {
 	log.Info().Str("PORT", os.Getenv("PORT")).Msg("Starting server")
-
-	r := gin.Default()
-
-	r.GET("/", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"ping": "pong"})
-	})
+	r := setupRouter()
 
 	r.Run()
 }
