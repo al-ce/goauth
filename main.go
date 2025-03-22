@@ -13,6 +13,7 @@ import (
 func init() {
 	initializers.SetupLogger()
 	initializers.LoadEnvVariables()
+	initializers.ConnectToDB()
 }
 
 func setupRouter() *gin.Engine {
