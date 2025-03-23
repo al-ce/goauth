@@ -7,7 +7,7 @@ watch:
     --build="go build -o gofit ./cmd/server/main.go" \
     --command="./gofit"
 
-# just test [path]
+# go test {{path}} and format the output
 test path="":
     #!/usr/bin/env sh
     if [ -z "{{path}}" ]; then
@@ -16,3 +16,24 @@ test path="":
         go test -v -json ./{{path}} | gotestfmt
     fi
 
+# Initialize development database
+init-db:
+    sudo -u postgres psql -f scripts/init_prod.sql
+
+# Initialize test database
+init-test-db:
+    sudo -u postgres psql -f scripts/init_testing.sql
+
+# Drop development database
+drop-db:
+    sudo -u postgres psql -c "DROP DATABASE IF EXISTS gofit;"
+
+# Drop test database
+drop-test-db:
+    sudo -u postgres psql -c "DROP DATABASE IF EXISTS gofit_test;"
+
+# Reset development database
+reset-db: drop-db init-db
+
+# Reset test database
+reset-test-db: drop-test-db init-test-db
