@@ -20,6 +20,9 @@ func TestUserHandler_RegisterUser(t *testing.T) {
 	server := server.NewAPIServer(tx)
 	server.SetupRoutes()
 
+	validEmail := "testRegisterUser@test.com"
+	validPassword := "correcthorsebatterystable" // strong password for validator
+
 	testCases := []struct {
 		name     string
 		req      Request
@@ -27,7 +30,7 @@ func TestUserHandler_RegisterUser(t *testing.T) {
 	}{
 		{
 			name:     "valid request",
-			req:      Request{Email: "some@test.com", Password: "password"},
+			req:      Request{Email: validEmail, Password: validPassword},
 			expected: http.StatusOK,
 		},
 		{
@@ -66,6 +69,8 @@ func TestUserHandler_Login(t *testing.T) {
 	server := server.NewAPIServer(tx)
 	server.SetupRoutes()
 
+	validEmail := "testRegisterUser@test.com"
+	validPassword := "correcthorsebatterystable" // strong password for validator
 
 	testCases := []struct {
 		name     string
@@ -74,7 +79,7 @@ func TestUserHandler_Login(t *testing.T) {
 	}{
 		{
 			name:     "valid request",
-			req:      Request{Email: "some@test.com", Password: "password"},
+			req:      Request{Email: validEmail, Password: validPassword},
 			expected: http.StatusOK,
 		},
 		{

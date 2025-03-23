@@ -1,8 +1,6 @@
 package services
 
 import (
-	"golang.org/x/crypto/bcrypt"
-
 	"gofit/internal/models"
 	"gofit/internal/repository"
 	"gofit/pkg/apperrors"
@@ -26,11 +24,9 @@ func (s *UserService) RegisterUser(email, password string) error {
 		return apperrors.ErrPasswordIsEmpty
 	}
 
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	user, err := models.NewUser(email, password)
 	if err != nil {
 		return err
 	}
-
-	user := models.User{Email: email, Password: string(hash)}
-	return s.ur.RegisterUser(&user)
+	return s.ur.RegisterUser(user)
 }
