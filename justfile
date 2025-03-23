@@ -1,6 +1,12 @@
 default:
     @just --list
 
+# watch for changes and run the server
+watch:
+    CompileDaemon \
+    --build="go build -o gofit ./cmd/server/main.go" \
+    --command="./gofit"
+
 # just test [path]
 test path="":
     #!/usr/bin/env sh
@@ -9,3 +15,4 @@ test path="":
     else
         go test -v -json ./{{path}} | gotestfmt
     fi
+
