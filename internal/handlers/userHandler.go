@@ -7,7 +7,10 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"gofit/internal/services"
+	"gofit/pkg/apperrors"
 )
+
+const TokenExpiration = 3600*24*7
 
 type UserHandler struct {
 	UserService *services.UserService
@@ -46,4 +49,13 @@ func (uh *UserHandler) Login(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	tokenString, err := uh.UserService.LoginUser(body.Email, body.Password)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": apperrors.ErrInvalidLogin})
+	}
+
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie("JWT_SESSION", tokenString, TokenExpiration, "", "", true, true)
+	c.JSON(http.StatusOK, gin.H{})
 }
