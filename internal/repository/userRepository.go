@@ -32,3 +32,14 @@ func (r *UserRepository) RegisterUser(u *models.User) error {
 
 	return r.db.Create(u).Error
 }
+
+func (r *UserRepository) LookupUser(email string) (*models.User, error) {
+	var user models.User
+	r.db.First(&user, "email = ?", email)
+
+	defaultUUID := uuid.UUID{}
+	if user.ID == defaultUUID {
+		return nil, errors.New("User not found")
+	}
+	return &user, nil
+}
