@@ -26,8 +26,8 @@ func TestPingRoute(t *testing.T) {
 	is := is.New(t)
 
 	testutils.TestEnvSetup()
-	testDB := testutils.TestDBSetup()
 
+	testDB := testutils.TestDBSetup()
 	server := server.NewAPIServer(testDB)
 	server.Run()
 
@@ -35,7 +35,6 @@ func TestPingRoute(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/ping", nil)
 
 	server.Router.ServeHTTP(w, req)
-
 
 	is.Equal(http.StatusOK, w.Code)
 	is.Equal("pong", w.Body.String())

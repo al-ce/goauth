@@ -22,4 +22,6 @@ func NewAPIServer(db *gorm.DB) *APIServer {
 func (s *APIServer) Run() {
 	r := s.Router
 	r.GET("/ping", func(c *gin.Context) { c.String(http.StatusOK, "pong") })
+
+	r.POST("/register", RegisterUser)
 }
