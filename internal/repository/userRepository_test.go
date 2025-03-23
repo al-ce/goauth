@@ -1,6 +1,7 @@
 package repository_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/google/uuid"
@@ -14,15 +15,35 @@ import (
 func TestUserRepository_RegisterUser(t *testing.T) {
 	testDB := testutils.TestDBSetup()
 	is := is.New(t)
+	tx := testDB.Begin()
+	defer tx.Rollback()
+
+	ur := repository.NewUserRepository(tx)
+
+	t.Run("fails on nil user", func(t *testing.T) {
+		err := ur.RegisterUser(nil)
+		is.Equal(err, errors.New("user is nil"))
+	})
+
+	t.Run("fails on missing email", func(t *testing.T) {
+		user := &models.User{
+			Password: "password",
+		}
+		err := ur.RegisterUser(user)
+		is.Equal(err, errors.New("email is empty"))
+	})
+
+	t.Run("fails on missing password", func(t *testing.T) {
+		user := &models.User{
+			Email: "testRegisterUser@test.com",
+		}
+		err := ur.RegisterUser(user)
+		is.Equal(err, errors.New("password is empty"))
+	})
 
 	t.Run("creates user", func(t *testing.T) {
-		tx := testDB.Begin()
-		defer tx.Rollback()
-
-		ur := repository.NewUserRepository(tx)
-
 		user := &models.User{
-			Email:    "test@test.com",
+			Email:    "testRegisterUser@test.com",
 			Password: "password",
 		}
 		err := ur.RegisterUser(user)
@@ -32,7 +53,7 @@ func TestUserRepository_RegisterUser(t *testing.T) {
 		tx.First(&dbUser, user.ID)
 
 		is.True(dbUser.ID != uuid.UUID{})
-		is.Equal(dbUser.Email, "test@test.com")
+		is.Equal(dbUser.Email, "testRegisterUser@test.com")
 		is.Equal(dbUser.Password, "password")
 		is.Equal(dbUser.LastLogin, nil)
 		is.Equal(dbUser.FailedLoginAttempts, 0)
@@ -41,13 +62,8 @@ func TestUserRepository_RegisterUser(t *testing.T) {
 	})
 
 	t.Run("fails on duplicate email", func(t *testing.T) {
-		tx := testDB.Begin()
-		defer tx.Rollback()
-
-		ur := repository.NewUserRepository(tx)
-
 		user := &models.User{
-			Email:    "test@test.com",
+			Email:    "testDuplicateRegisterUser@test.com",
 			Password: "password",
 		}
 		err := ur.RegisterUser(user)

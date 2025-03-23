@@ -3,6 +3,7 @@ package repository
 import (
 	"errors"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 
 	"gofit/internal/models"
