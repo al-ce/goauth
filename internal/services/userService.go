@@ -16,7 +16,7 @@ func NewUserService(ur *repository.UserRepository) *UserService {
 	}
 }
 
-func (s *UserService) RegisterUser(email, password string) error {
+func (us *UserService) RegisterUser(email, password string) error {
 	if email == "" {
 		return apperrors.ErrEmailIsEmpty
 	}
@@ -28,5 +28,28 @@ func (s *UserService) RegisterUser(email, password string) error {
 	if err != nil {
 		return err
 	}
-	return s.ur.RegisterUser(user)
+	return us.ur.RegisterUser(user)
+}
+
+func (us *UserService) LoginUser(email, password string) (string, error) {
+	if email == "" {
+		return "", apperrors.ErrEmailIsEmpty
+	}
+	if password == "" {
+		return "", apperrors.ErrPasswordIsEmpty
+	}
+
+	// Lookup user exists
+	_, err := us.ur.LookupUser(email)
+	if err != nil {
+		return "", err
+	}
+
+	// Compare password with hash
+
+	// Generate a jwt token
+
+	// Return token string
+
+	return "", nil
 }
