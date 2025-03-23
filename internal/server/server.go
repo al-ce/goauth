@@ -7,23 +7,27 @@ import (
 	"gorm.io/gorm"
 
 	"gofit/internal/handlers"
+	"gofit/internal/middleware"
 	"gofit/internal/repository"
 	"gofit/internal/services"
 )
 
 type APIServer struct {
-	Router   *gin.Engine
-	Handlers *Handlers
+	Router      *gin.Engine
+	Handlers    *Handlers
+	Middlewares *Middlewares
 }
 
 func NewAPIServer(db *gorm.DB) *APIServer {
 	repos := initRepositories(db)
 	services := initServices(repos)
 	handlers := initHandlers(services)
+	middlewares := initMiddlewares(db)
 
 	server := &APIServer{
-		Router:   gin.Default(),
-		Handlers: handlers,
+		Router:      gin.Default(),
+		Handlers:    handlers,
+		Middlewares: middlewares,
 	}
 
 	return server
@@ -34,6 +38,21 @@ func (s *APIServer) SetupRoutes() {
 	r.GET("/ping", func(c *gin.Context) { c.String(http.StatusOK, "pong") })
 	r.POST("/register", s.Handlers.User.RegisterUser)
 	r.POST("/login", s.Handlers.User.Login)
+
+    protected := r.Group("")
+    protected.Use(s.Middlewares.Auth.RequireAuth())
+    {
+        protected.GET("/profile", s.Handlers.User.GetProfile)
+    }
+
+	// TODO: admin group
+
+	// admin := r.Group("/admin")
+	// admin.Use(authMiddleware.RequireAuth(), authMiddleware.RequireAdmin())
+	// {
+	// 	admin.GET("/users", someHandler)
+	// }
+
 }
 
 func (s *APIServer) Run() {
@@ -59,6 +78,12 @@ func initHandlers(services *Services) *Handlers {
 	}
 }
 
+func initMiddlewares(db *gorm.DB) *Middlewares {
+	return &Middlewares{
+		Auth: middleware.NewAuthMiddleware(db),
+	}
+}
+
 type Repositories struct {
 	User *repository.UserRepository
 }
@@ -69,4 +94,8 @@ type Services struct {
 
 type Handlers struct {
 	User *handlers.UserHandler
+}
+
+type Middlewares struct {
+	Auth *middleware.AuthMiddleware
 }

@@ -58,3 +58,8 @@ func (uh *UserHandler) Login(c *gin.Context) {
 	c.SetCookie(config.JwtCookieName, tokenString, config.TokenExpiration, "", "", true, true)
 	c.JSON(http.StatusOK, gin.H{})
 }
+
+func (uh *UserHandler) GetProfile(c *gin.Context) {
+	// TODO:
+	c.JSON(http.StatusOK, gin.H{"email": "user email will go here"})
+}
