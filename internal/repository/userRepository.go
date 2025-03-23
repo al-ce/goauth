@@ -47,3 +47,14 @@ func (r *UserRepository) LookupUser(email string) (*models.User, error) {
 	}
 	return &user, nil
 }
+
+func (r *UserRepository) GetUserByID(userID string) (*models.User, error) {
+	var user models.User
+	r.DB.First(&user, "ID = ?", userID)
+
+	defaultUUID := uuid.UUID{}
+	if user.ID == defaultUUID {
+		return nil, apperrors.ErrUserNotFound
+	}
+	return &user, nil
+}

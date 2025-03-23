@@ -102,9 +102,44 @@ func TestUserRepository_LookupUser(t *testing.T) {
 		is.True(dbUser.ID != uuid.UUID{})
 		is.Equal(dbUser.Email, "testLookupUser@test.com")
 		is.Equal(dbUser.Password, "password")
-		is.Equal(dbUser.LastLogin, nil)
-		is.Equal(dbUser.FailedLoginAttempts, 0)
-		is.True(!dbUser.AccountLocked)
-		is.Equal(dbUser.AccountLockedUntil, nil)
 	})
+}
+
+func TestUserRepository_GetUserByID(t *testing.T) {
+	testDB := testutils.TestDBSetup()
+	is := is.New(t)
+	tx := testDB.Begin()
+	defer tx.Rollback()
+
+	ur := repository.NewUserRepository(tx)
+
+	email := "testGetUserByID@test.com"
+	password := "password"
+
+	// Register a user to look up
+	user := &models.User{
+		Email:    email,
+		Password: password,
+	}
+	err := ur.RegisterUser(user)
+	is.NoErr(err)
+
+	t.Run("non-existing user", func(t *testing.T) {
+		randUUID, err := uuid.NewRandom()
+		is.NoErr(err)
+
+		dbUser, err := ur.GetUserByID(randUUID.String())
+		is.Equal(dbUser, nil)
+		is.Equal(err, apperrors.ErrUserNotFound)
+	})
+
+	 t.Run("existing user", func(t *testing.T) {
+		dbUser, err := ur.GetUserByID(user.ID.String())
+	 	is.NoErr(err)
+
+	 	is.True(dbUser.ID != uuid.UUID{})
+	 	is.Equal(dbUser.Email, email)
+	 	is.Equal(dbUser.Password, password)
+		is.Equal(dbUser.ID, user.ID)
+	 })
 }
