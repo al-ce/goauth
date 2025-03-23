@@ -6,10 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/matryer/is"
 
+	"gofit/internal/handlers"
 	"gofit/internal/models"
 	"gofit/internal/repository"
 	"gofit/internal/services"
@@ -113,7 +114,7 @@ func TestUserService_LoginUser(t *testing.T) {
 
 		exp, ok := claims["exp"].(float64)
 		is.True(ok)
-		expectedExp := float64(time.Now().Add(time.Hour * 24 * 7).Unix())
+		expectedExp := float64(time.Now().Unix() + handlers.TokenExpiration)
 		// Account for 5 second expiry difference
 		is.True(math.Abs(exp-expectedExp) < 5)
 	})
