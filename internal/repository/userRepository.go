@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"errors"
+
 	"gorm.io/gorm"
 
 	"gofit/internal/models"
@@ -14,12 +16,17 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 	return &UserRepository{db: db}
 }
 
-func (r *UserRepository) UserCreate(u *models.User) error {
-	return r.db.Create(u).Error
-}
+func (r *UserRepository) RegisterUser(u *models.User) error {
+	if u == nil {
+		return errors.New("user is nil")
+	}
 
-func (r *UserRepository) UsersIndex() ([]models.User, error) {
-	var users []models.User
-	err := r.db.Find(&users).Error
-	return users, err
+	if u.Email == "" {
+		return errors.New("email is empty")
+	}
+	if u.Password == "" {
+		return errors.New("password is empty")
+	}
+
+	return r.db.Create(u).Error
 }

@@ -1,28 +1,18 @@
 package repository_test
 
 import (
-	"os"
 	"testing"
 
 	"github.com/google/uuid"
 	"github.com/matryer/is"
-	"gorm.io/gorm"
 
 	"gofit/internal/models"
 	"gofit/internal/repository"
 	"gofit/internal/testutils"
 )
 
-var testDB *gorm.DB
-
-func TestMain(m *testing.M) {
-	testutils.TestEnvSetup()
-	testDB = testutils.TestDBSetup()
-
-	os.Exit(m.Run())
-}
-
-func TestCreateUser(t *testing.T) {
+func TestUserRepository_RegisterUser(t *testing.T) {
+	testDB := testutils.TestDBSetup()
 	is := is.New(t)
 
 	t.Run("creates user", func(t *testing.T) {
@@ -35,7 +25,7 @@ func TestCreateUser(t *testing.T) {
 			Email:    "test@test.com",
 			Password: "password",
 		}
-		err := ur.UserCreate(user)
+		err := ur.RegisterUser(user)
 		is.NoErr(err)
 
 		var dbUser models.User

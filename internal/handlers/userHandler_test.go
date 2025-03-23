@@ -1,4 +1,4 @@
-package server_test
+package handlers_test
 
 import (
 	"net/http"
@@ -20,16 +20,17 @@ func TestRegisterUser(t *testing.T) {
 	server.Run()
 
 	t.Run("valid request", func(t *testing.T) {
-		req, err := http.NewRequest("POST", "/register", strings.NewReader(`{"email": "some@test.com", "password": "password"}`))
+		req, err := http.NewRequest(
+			"POST",
+			"/register",
+			strings.NewReader(`{"email": "some@test.com", "password": "password"}`),
+		)
 		is.NoErr(err)
 
 		rr := httptest.NewRecorder()
 		server.Router.ServeHTTP(rr, req)
 
 		is.Equal(rr.Code, http.StatusOK)
-
-		// Check the response body is what we expect.
-		// is.Equal(rr.Body.String(), `{"message":"User created"}`)
 	})
 
 	t.Run("invalid request no email", func(t *testing.T) {
