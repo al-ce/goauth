@@ -13,4 +13,6 @@ var (
 	ErrUserNotFound    = New("User not found")
 	ErrDuplicateEmail  = New("Duplicate email")
 	ErrEmailMaxLength  = New("Email exceeds max length of 254 characters")
+	ErrInvalidLogin    = New("Invalid login credentials")
+	ErrTokenGeneration = New("Could not generate token")
 )

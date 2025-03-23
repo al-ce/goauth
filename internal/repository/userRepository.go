@@ -11,14 +11,14 @@ import (
 )
 
 type UserRepository struct {
-	db *gorm.DB
+	DB *gorm.DB
 }
 
 func NewUserRepository(db *gorm.DB) *UserRepository {
-	return &UserRepository{db: db}
+	return &UserRepository{DB: db}
 }
 
-func (r *UserRepository) RegisterUser(u *models.User) error {
+func (ur *UserRepository) RegisterUser(u *models.User) error {
 	if u == nil {
 		return apperrors.ErrUserIsNil
 	}
@@ -30,9 +30,7 @@ func (r *UserRepository) RegisterUser(u *models.User) error {
 		return apperrors.ErrPasswordIsEmpty
 	}
 
-	// TODO: validate email format and pw strength
-
-	err := r.db.Create(u).Error
+	err := ur.DB.Create(u).Error
 	if err != nil && strings.Contains(err.Error(), `duplicate key value violates unique constraint "users_pkey"`) {
 		return apperrors.ErrDuplicateEmail
 	}
@@ -41,7 +39,7 @@ func (r *UserRepository) RegisterUser(u *models.User) error {
 
 func (r *UserRepository) LookupUser(email string) (*models.User, error) {
 	var user models.User
-	r.db.First(&user, "email = ?", email)
+	r.DB.First(&user, "email = ?", email)
 
 	defaultUUID := uuid.UUID{}
 	if user.ID == defaultUUID {

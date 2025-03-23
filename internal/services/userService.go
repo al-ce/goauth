@@ -1,22 +1,29 @@
 package services
 
 import (
+	"os"
+	"time"
+
+	"github.com/golang-jwt/jwt"
+	"golang.org/x/crypto/bcrypt"
+
 	"gofit/internal/models"
 	"gofit/internal/repository"
 	"gofit/pkg/apperrors"
 )
 
 type UserService struct {
-	ur *repository.UserRepository
+	UserRepo *repository.UserRepository
 }
 
 func NewUserService(ur *repository.UserRepository) *UserService {
 	return &UserService{
-		ur: ur,
+		UserRepo: ur,
 	}
 }
 
 func (us *UserService) RegisterUser(email, password string) error {
+	// Check for empty fields
 	if email == "" {
 		return apperrors.ErrEmailIsEmpty
 	}
@@ -28,7 +35,7 @@ func (us *UserService) RegisterUser(email, password string) error {
 	if err != nil {
 		return err
 	}
-	return us.ur.RegisterUser(user)
+	return us.UserRepo.RegisterUser(user)
 }
 
 func (us *UserService) LoginUser(email, password string) (string, error) {
@@ -39,17 +46,25 @@ func (us *UserService) LoginUser(email, password string) (string, error) {
 		return "", apperrors.ErrPasswordIsEmpty
 	}
 
-	// Lookup user exists
-	_, err := us.ur.LookupUser(email)
+	user, err := us.UserRepo.LookupUser(email)
 	if err != nil {
 		return "", err
 	}
 
-	// Compare password with hash
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	if err != nil {
+		return "", apperrors.ErrInvalidLogin
+	}
 
-	// Generate a jwt token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub": user.ID.String(),
+		"exp": time.Now().Add(time.Hour * 24 * 7).Unix(),
+	})
 
-	// Return token string
+	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	if err != nil {
+		return "", apperrors.ErrTokenGeneration
+	}
 
-	return "", nil
+	return tokenString, nil
 }
