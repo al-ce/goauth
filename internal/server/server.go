@@ -33,6 +33,7 @@ func (s *APIServer) SetupRoutes() {
 	r := s.Router
 	r.GET("/ping", func(c *gin.Context) { c.String(http.StatusOK, "pong") })
 	r.POST("/register", s.Handlers.User.RegisterUser)
+	r.POST("/login", s.Handlers.User.Login)
 }
 
 func (s *APIServer) Run() {
