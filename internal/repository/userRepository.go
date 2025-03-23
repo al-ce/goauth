@@ -28,5 +28,7 @@ func (r *UserRepository) RegisterUser(u *models.User) error {
 		return errors.New("password is empty")
 	}
 
+	// TODO: validate email format and pw strength
+
 	return r.db.Create(u).Error
 }
