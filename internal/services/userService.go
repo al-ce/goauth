@@ -5,6 +5,7 @@ import (
 
 	"gofit/internal/models"
 	"gofit/internal/repository"
+	"gofit/pkg/apperrors"
 )
 
 type UserService struct {
@@ -18,6 +19,13 @@ func NewUserService(ur *repository.UserRepository) *UserService {
 }
 
 func (s *UserService) RegisterUser(email, password string) error {
+	if email == "" {
+		return apperrors.ErrEmailIsEmpty
+	}
+	if password == "" {
+		return apperrors.ErrPasswordIsEmpty
+	}
+
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
