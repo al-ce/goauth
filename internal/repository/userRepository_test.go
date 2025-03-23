@@ -39,4 +39,21 @@ func TestUserRepository_RegisterUser(t *testing.T) {
 		is.True(!dbUser.AccountLocked)
 		is.Equal(dbUser.AccountLockedUntil, nil)
 	})
+
+	t.Run("fails on duplicate email", func(t *testing.T) {
+		tx := testDB.Begin()
+		defer tx.Rollback()
+
+		ur := repository.NewUserRepository(tx)
+
+		user := &models.User{
+			Email:    "test@test.com",
+			Password: "password",
+		}
+		err := ur.RegisterUser(user)
+		is.NoErr(err)
+
+		err = ur.RegisterUser(user)
+		is.True(err != nil)
+	})
 }

@@ -16,48 +16,53 @@ func TestRegisterUser(t *testing.T) {
 	is := is.New(t)
 
 	testDB := testutils.TestDBSetup()
-	server := server.NewAPIServer(testDB)
-	server.Run()
 
-	t.Run("valid request", func(t *testing.T) {
+	makeRequest := func(body string) *httptest.ResponseRecorder {
+		tx := testDB.Begin()
+		defer tx.Rollback()
+
+		server := server.NewAPIServer(tx)
+		server.SetupRoutes()
+
 		req, err := http.NewRequest(
 			"POST",
 			"/register",
-			strings.NewReader(`{"email": "some@test.com", "password": "password"}`),
+			strings.NewReader(body),
 		)
 		is.NoErr(err)
 
 		rr := httptest.NewRecorder()
 		server.Router.ServeHTTP(rr, req)
 
-		is.Equal(rr.Code, http.StatusOK)
-	})
+		return rr
+	}
 
-	t.Run("invalid request no email", func(t *testing.T) {
-		req, err := http.NewRequest(
-			"POST",
-			"/register",
-			strings.NewReader(`{"password": "password"}`),
-		)
-		is.NoErr(err)
+	testCases := []struct {
+		name     string
+		body     string
+		expected int
+	}{
+		{
+			name:     "valid request",
+			body:     `{"email": "some@test.com", "password": "password"}`,
+			expected: http.StatusOK,
+		},
+		{
+			name:     "invalid request no email",
+			body:     `{"password": "password"}`,
+			expected: http.StatusBadRequest,
+		},
+		{
+			name:     "invalid request no password",
+			body:     `{"email": "some@test.com"}`,
+			expected: http.StatusBadRequest,
+		},
+	}
 
-		rr := httptest.NewRecorder()
-		server.Router.ServeHTTP(rr, req)
-
-		is.Equal(rr.Code, http.StatusBadRequest)
-	})
-
-	t.Run("invalid request no password", func(t *testing.T) {
-		req, err := http.NewRequest(
-			"POST",
-			"/register",
-			strings.NewReader(`{"email": "some@test.com"}`),
-		)
-		is.NoErr(err)
-
-		rr := httptest.NewRecorder()
-		server.Router.ServeHTTP(rr, req)
-
-		is.Equal(rr.Code, http.StatusBadRequest)
-	})
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			rr := makeRequest(tc.body)
+			is.Equal(rr.Code, tc.expected)
+		})
+	}
 }
