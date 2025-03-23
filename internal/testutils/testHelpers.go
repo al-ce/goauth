@@ -1,8 +1,12 @@
 package testutils
 
 import (
+	"bytes"
+	"encoding/json"
 	"io"
 	"log"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"time"
 
@@ -42,4 +46,25 @@ func TestDBSetup() *gorm.DB {
 
 	database.Migrate(db)
 	return db
+}
+
+func MakeRequest(router *gin.Engine, method, path string, body any) (*httptest.ResponseRecorder, error) {
+	jsonData, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(
+		method,
+		path,
+		bytes.NewBuffer(jsonData),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	rr := httptest.NewRecorder()
+	router.ServeHTTP(rr, req)
+
+	return rr, nil
 }

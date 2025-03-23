@@ -10,6 +10,11 @@ import (
 	"gofit/internal/testutils"
 )
 
+type Request struct {
+	Email string
+	Password string
+}
+
 func TestMain(m *testing.M) {
 	testutils.TestEnvSetup()
 

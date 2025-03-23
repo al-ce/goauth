@@ -2,8 +2,6 @@ package handlers_test
 
 import (
 	"net/http"
-	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/matryer/is"
@@ -12,56 +10,47 @@ import (
 	"gofit/internal/testutils"
 )
 
-func TestRegisterUser(t *testing.T) {
+func TestUserHandler_RegisterUser(t *testing.T) {
 	is := is.New(t)
 
 	testDB := testutils.TestDBSetup()
+	tx := testDB.Begin()
+	defer tx.Rollback()
 
-	makeRequest := func(body string) *httptest.ResponseRecorder {
-		tx := testDB.Begin()
-		defer tx.Rollback()
-
-		server := server.NewAPIServer(tx)
-		server.SetupRoutes()
-
-		req, err := http.NewRequest(
-			"POST",
-			"/register",
-			strings.NewReader(body),
-		)
-		is.NoErr(err)
-
-		rr := httptest.NewRecorder()
-		server.Router.ServeHTTP(rr, req)
-
-		return rr
-	}
+	server := server.NewAPIServer(tx)
+	server.SetupRoutes()
 
 	testCases := []struct {
 		name     string
-		body     string
+		req      Request
 		expected int
 	}{
 		{
 			name:     "valid request",
-			body:     `{"email": "some@test.com", "password": "password"}`,
+			req:      Request{Email: "some@test.com", Password: "password"},
 			expected: http.StatusOK,
 		},
 		{
 			name:     "invalid request no email",
-			body:     `{"password": "password"}`,
+			req:      Request{Password: "password"},
 			expected: http.StatusBadRequest,
 		},
 		{
 			name:     "invalid request no password",
-			body:     `{"email": "some@test.com"}`,
+			req:      Request{Email: "some@test.com"},
 			expected: http.StatusBadRequest,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			rr := makeRequest(tc.body)
+			rr, err := testutils.MakeRequest(
+				server.Router,
+				"POST",
+				"/register",
+				tc.req,
+			)
+			is.NoErr(err)
 			is.Equal(rr.Code, tc.expected)
 		})
 	}
