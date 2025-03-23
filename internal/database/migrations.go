@@ -1,9 +1,18 @@
 package database
 
-import "gofit/internal/models"
+import (
+	"github.com/rs/zerolog/log"
+	"gorm.io/gorm"
 
-func Migrate() error {
-	return DB.AutoMigrate(
+	"gofit/internal/models"
+)
+
+func Migrate(db *gorm.DB) error {
+	if err := db.Exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";").Error; err != nil {
+		log.Fatal().Err(err).Msg("Error migrating database")
+	}
+
+	return db.AutoMigrate(
 		&models.User{},
 	)
 }

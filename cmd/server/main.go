@@ -1,35 +1,28 @@
 package main
 
 import (
-	"net/http"
 	"os"
 
-	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"github.com/rs/zerolog/log"
 
-	"gofit/internal/config"
 	"gofit/internal/database"
+	"gofit/internal/server"
 	"gofit/pkg/logger"
 )
 
-func init() {
-	logger.SetupLogger()
-	config.LoadEnvVariables()
-	database.ConnectToDB()
-	database.Migrate()
-}
-
-func setupRouter() *gin.Engine {
-	router := gin.Default()
-	router.GET("/ping", func(c *gin.Context) {
-		c.String(http.StatusOK, "pong")
-	})
-	return router
-}
-
 func main() {
-	log.Info().Str("PORT", os.Getenv("PORT")).Msg("Starting server")
-	r := setupRouter()
+	logger.SetupLogger()
 
-	r.Run()
+	if err := godotenv.Load(); err != nil {
+		log.Fatal().Err(err).Msg("Error loading env file")
+	}
+
+	db := database.NewDB()
+	database.Migrate(db)
+
+	log.Info().Str("PORT", os.Getenv("PORT")).Msg("Starting server")
+
+	apiServer := server.NewAPIServer(db)
+	apiServer.Run()
 }
