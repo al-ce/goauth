@@ -10,12 +10,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/matryer/is"
 
-	"gofit/internal/handlers"
 	"gofit/internal/models"
 	"gofit/internal/repository"
 	"gofit/internal/services"
 	"gofit/internal/testutils"
 	"gofit/pkg/apperrors"
+	"gofit/pkg/config"
 )
 
 func TestUserService_RegisterUser(t *testing.T) {
@@ -99,7 +99,7 @@ func TestUserService_LoginUser(t *testing.T) {
 		is.NoErr(err)
 
 		parsedToken, err := jwt.Parse(token, func(token *jwt.Token) (any, error) {
-			return []byte(os.Getenv("JWT_SECRET")), nil
+			return []byte(os.Getenv(config.JwtCookieName)), nil
 		})
 		is.NoErr(err)
 		is.True(parsedToken.Valid)
@@ -114,7 +114,7 @@ func TestUserService_LoginUser(t *testing.T) {
 
 		exp, ok := claims["exp"].(float64)
 		is.True(ok)
-		expectedExp := float64(time.Now().Unix() + handlers.TokenExpiration)
+		expectedExp := float64(time.Now().Unix() + config.TokenExpiration)
 		// Account for 5 second expiry difference
 		is.True(math.Abs(exp-expectedExp) < 5)
 	})

@@ -8,9 +8,8 @@ import (
 
 	"gofit/internal/services"
 	"gofit/pkg/apperrors"
+	"gofit/pkg/config"
 )
-
-const TokenExpiration = 3600*24*7
 
 type UserHandler struct {
 	UserService *services.UserService
@@ -56,6 +55,6 @@ func (uh *UserHandler) Login(c *gin.Context) {
 	}
 
 	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie("JWT_SESSION", tokenString, TokenExpiration, "", "", true, true)
+	c.SetCookie(config.JwtCookieName, tokenString, config.TokenExpiration, "", "", true, true)
 	c.JSON(http.StatusOK, gin.H{})
 }

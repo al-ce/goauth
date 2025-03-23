@@ -10,6 +10,7 @@ import (
 	"gofit/internal/models"
 	"gofit/internal/repository"
 	"gofit/pkg/apperrors"
+	"gofit/pkg/config"
 )
 
 type UserService struct {
@@ -61,7 +62,7 @@ func (us *UserService) LoginUser(email, password string) (string, error) {
 		"exp": time.Now().Add(time.Hour * 24 * 7).Unix(),
 	})
 
-	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	tokenString, err := token.SignedString([]byte(os.Getenv(config.JwtCookieName)))
 	if err != nil {
 		return "", apperrors.ErrTokenGeneration
 	}

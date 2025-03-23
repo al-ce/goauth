@@ -10,6 +10,7 @@ import (
 
 	"gofit/internal/server"
 	"gofit/internal/testutils"
+	"gofit/pkg/config"
 )
 
 func TestUserHandler_RegisterUser(t *testing.T) {
@@ -151,7 +152,7 @@ func TestUserHandler_Login(t *testing.T) {
 				cookies := rr.Result().Cookies()
 				var jwtCookie *http.Cookie
 				for _, cookie := range cookies {
-					if cookie.Name == "JWT_SESSION" {
+					if cookie.Name == config.JwtCookieName {
 						jwtCookie = cookie
 						break
 					}
@@ -161,7 +162,7 @@ func TestUserHandler_Login(t *testing.T) {
 				tokenString := jwtCookie.Value
 
 				parsedToken, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
-					return []byte(os.Getenv("JWT_SECRET")), nil
+					return []byte(os.Getenv(config.JwtCookieName)), nil
 				}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
 
 				is.NoErr(err)
