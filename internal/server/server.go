@@ -29,11 +29,15 @@ func NewAPIServer(db *gorm.DB) *APIServer {
 	return server
 }
 
-func (s *APIServer) Run() {
+func (s *APIServer) SetupRoutes() {
 	r := s.Router
 	r.GET("/ping", func(c *gin.Context) { c.String(http.StatusOK, "pong") })
-
 	r.POST("/register", s.Handlers.User.RegisterUser)
+}
+
+func (s *APIServer) Run() {
+	s.SetupRoutes()
+	s.Router.Run()
 }
 
 func initRepositories(db *gorm.DB) *Repositories {

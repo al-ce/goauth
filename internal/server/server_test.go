@@ -1,13 +1,11 @@
 package server_test
 
 import (
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 	"github.com/matryer/is"
 
 	"gofit/internal/server"
@@ -16,9 +14,6 @@ import (
 
 func TestMain(m *testing.M) {
 	testutils.TestEnvSetup()
-
-	gin.SetMode(gin.TestMode)
-	gin.DefaultWriter = io.Discard
 	os.Exit(m.Run())
 }
 
@@ -29,13 +24,13 @@ func TestPingRoute(t *testing.T) {
 
 	testDB := testutils.TestDBSetup()
 	server := server.NewAPIServer(testDB)
-	server.Run()
+	server.SetupRoutes()
 
-	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping", nil)
+	rr := httptest.NewRecorder()
 
-	server.Router.ServeHTTP(w, req)
+	server.Router.ServeHTTP(rr, req)
 
-	is.Equal(http.StatusOK, w.Code)
-	is.Equal("pong", w.Body.String())
+	is.Equal(http.StatusOK, rr.Code)
+	is.Equal("pong", rr.Body.String())
 }
