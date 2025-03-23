@@ -52,6 +52,8 @@ func (us *UserService) LoginUser(email, password string) (string, error) {
 		return "", err
 	}
 
+	// TODO: update last login
+
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
 		return "", apperrors.ErrInvalidLogin
