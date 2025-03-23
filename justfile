@@ -13,7 +13,7 @@ test path="":
     if [ -z "{{path}}" ]; then
         go test -v -json ./... | gotestfmt
     else
-        go test -v -json ./{{path}} | gotestfmt
+        go test -v -json ./internal/{{path}} | gotestfmt
     fi
 
 # Initialize development database
