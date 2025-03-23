@@ -1,7 +1,6 @@
 package repository_test
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/google/uuid"
@@ -10,6 +9,7 @@ import (
 	"gofit/internal/models"
 	"gofit/internal/repository"
 	"gofit/internal/testutils"
+	"gofit/pkg/apperrors"
 )
 
 func TestUserRepository_RegisterUser(t *testing.T) {
@@ -22,7 +22,7 @@ func TestUserRepository_RegisterUser(t *testing.T) {
 
 	t.Run("fails on nil user", func(t *testing.T) {
 		err := ur.RegisterUser(nil)
-		is.Equal(err, errors.New("user is nil"))
+		is.Equal(err, apperrors.ErrUserIsNil)
 	})
 
 	t.Run("fails on missing email", func(t *testing.T) {
@@ -30,7 +30,7 @@ func TestUserRepository_RegisterUser(t *testing.T) {
 			Password: "password",
 		}
 		err := ur.RegisterUser(user)
-		is.Equal(err, errors.New("email is empty"))
+		is.Equal(err, apperrors.ErrEmailIsEmpty)
 	})
 
 	t.Run("fails on missing password", func(t *testing.T) {
@@ -38,7 +38,7 @@ func TestUserRepository_RegisterUser(t *testing.T) {
 			Email: "testRegisterUser@test.com",
 		}
 		err := ur.RegisterUser(user)
-		is.Equal(err, errors.New("password is empty"))
+		is.Equal(err, apperrors.ErrPasswordIsEmpty)
 	})
 
 	t.Run("creates user", func(t *testing.T) {
@@ -70,7 +70,7 @@ func TestUserRepository_RegisterUser(t *testing.T) {
 		is.NoErr(err)
 
 		err = ur.RegisterUser(user)
-		is.True(err != nil)
+		is.Equal(err, apperrors.ErrDuplicateEmail)
 	})
 }
 
@@ -93,7 +93,7 @@ func TestUserRepository_LookupUser(t *testing.T) {
 	t.Run("non-existing user", func(t *testing.T) {
 		dbUser, err := ur.LookupUser("doesNotExist@test.com")
 		is.Equal(dbUser, nil)
-		is.Equal(err, errors.New("User not found"))
+		is.Equal(err, apperrors.ErrUserNotFound)
 	})
 	t.Run("existing user", func(t *testing.T) {
 		dbUser, err := ur.LookupUser(user.Email)
