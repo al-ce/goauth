@@ -133,13 +133,13 @@ func TestUserRepository_GetUserByID(t *testing.T) {
 		is.Equal(err, apperrors.ErrUserNotFound)
 	})
 
-	 t.Run("existing user", func(t *testing.T) {
+	t.Run("existing user", func(t *testing.T) {
 		dbUser, err := ur.GetUserByID(user.ID.String())
-	 	is.NoErr(err)
+		is.NoErr(err)
 
-	 	is.True(dbUser.ID != uuid.UUID{})
-	 	is.Equal(dbUser.Email, email)
-	 	is.Equal(dbUser.Password, password)
-		is.Equal(dbUser.ID, user.ID)
-	 })
+		is.True(dbUser.ID != uuid.UUID{})
+		is.Equal(dbUser.Email, email)
+		is.Equal(dbUser.Password, password)
+		is.Equal(dbUser.ID, user.ID.String())
+	})
 }
