@@ -40,7 +40,7 @@ func TestUserService_RegisterUser(t *testing.T) {
 
 	t.Run("valid user", func(t *testing.T) {
 		email := "testUserServiceRegisterUser@test.com"
-		password := "correcthorsebatterystaple"
+		password := config.TestingPassword
 		err := us.RegisterUser(email, password)
 		is.NoErr(err)
 
@@ -79,7 +79,7 @@ func TestUserService_LoginUser(t *testing.T) {
 
 	// Create test user
 	email := "testUserServiceLoginUser@test.com"
-	password := "correcthorsebatterystaple"
+	password := config.TestingPassword
 	err := us.RegisterUser(email, password)
 	is.NoErr(err)
 

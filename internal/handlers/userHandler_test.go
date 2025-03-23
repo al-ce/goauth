@@ -24,7 +24,7 @@ func TestUserHandler_RegisterUser(t *testing.T) {
 	server.SetupRoutes()
 
 	validEmail := "testRegisterUser@test.com"
-	validPassword := "correcthorsebatterystaple" // strong password for validator
+	validPassword := config.TestingPassword // strong password for validator
 
 	// Test cases
 	testCases := []struct {
@@ -74,9 +74,9 @@ func TestUserHandler_Login(t *testing.T) {
 	server.SetupRoutes()
 
 	validEmail := "testUserHandlerLoginUser@test.com"
-	validPassword := "correcthorsebatterystaple" // strong password for validator
+	validPassword := config.TestingPassword // strong password for validator
 	validEmail2 := "SECONDARYtestUserHandlerLoginUser@test.com"
-	validPassword2 := "SECONDARYcorrecthorsebatterystaple"
+	validPassword2 := "SECONDARY" + config.TestingPassword
 
 	// Register first user
 	rr, err := testutils.MakeRequest(

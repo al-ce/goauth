@@ -10,7 +10,7 @@ func TestNewUser(t *testing.T) {
 	is := is.New(t)
 
 	validEmail := "test@newuser.com"
-	validPassword := "correcthorsebatterystaple"
+	validPassword := config.TestingPassword
 
 	_, err := NewUser(validEmail, validPassword)
 	is.NoErr(err)
