@@ -8,6 +8,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/matryer/is"
 
+	"gofit/internal/models"
 	"gofit/internal/server"
 	"gofit/internal/testutils"
 	"gofit/pkg/config"
@@ -73,30 +74,25 @@ func TestUserHandler_Login(t *testing.T) {
 	server := server.NewAPIServer(tx)
 	server.SetupRoutes()
 
-	validEmail := "testUserHandlerLoginUser@test.com"
-	validPassword := config.TestingPassword // strong password for validator
+	// Register two test users directly to the DB
+	validEmail1 := "testUserHandlerLoginUser@test.com"
+	validPassword1 := config.TestingPassword // strong password for validator
 	validEmail2 := "SECONDARYtestUserHandlerLoginUser@test.com"
 	validPassword2 := "SECONDARY" + config.TestingPassword
+	user1 := &models.User{
+		Email:    validEmail1,
+		Password: validPassword1,
+	}
+	user2 := &models.User{
+		Email:    validEmail2,
+		Password: validPassword2,
+	}
 
-	// Register first user
-	rr, err := testutils.MakeRequest(
-		server.Router,
-		"POST",
-		"/register",
-		Request{Email: validEmail, Password: validPassword},
-	)
+	err := testutils.RegisterUser(tx, user1)
 	is.NoErr(err)
-	is.Equal(rr.Code, http.StatusOK)
 
-	// Register second user
-	rr, err = testutils.MakeRequest(
-		server.Router,
-		"POST",
-		"/register",
-		Request{Email: validEmail2, Password: validPassword2},
-	)
+	err = testutils.RegisterUser(tx, user2)
 	is.NoErr(err)
-	is.Equal(rr.Code, http.StatusOK)
 
 	// Test cases
 	testCases := []struct {
@@ -116,22 +112,22 @@ func TestUserHandler_Login(t *testing.T) {
 		},
 		{
 			name:     "non-existent user",
-			req:      Request{Email: "doesNotExist@test.com", Password: validPassword},
+			req:      Request{Email: "doesNotExist@test.com", Password: validPassword1},
 			expected: http.StatusBadRequest,
 		},
 		{
 			name:     "incorrect password",
-			req:      Request{Email: validEmail, Password: "thisIsNotThePassword"},
+			req:      Request{Email: validEmail1, Password: "thisIsNotThePassword"},
 			expected: http.StatusBadRequest,
 		},
 		{
 			name:     "existing password, mismatched existing user",
-			req:      Request{Email: validEmail, Password: validPassword2},
+			req:      Request{Email: validEmail1, Password: validPassword2},
 			expected: http.StatusBadRequest,
 		},
 		{
 			name:     "valid request",
-			req:      Request{Email: validEmail, Password: validPassword},
+			req:      Request{Email: validEmail1, Password: validPassword1},
 			expected: http.StatusOK,
 		},
 	}

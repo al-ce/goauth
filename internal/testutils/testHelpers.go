@@ -11,11 +11,13 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
 	"gofit/internal/database"
+	"gofit/internal/models"
 )
 
 func TestEnvSetup() {
@@ -67,4 +69,16 @@ func MakeRequest(router *gin.Engine, method, path string, body any) (*httptest.R
 	router.ServeHTTP(rr, req)
 
 	return rr, nil
+}
+
+func RegisterUser(db *gorm.DB, user *models.User) error {
+	_, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	user1, err := models.NewUser(user.Email, user.Password)
+	if err != nil {
+		return err
+	}
+	return db.Create(user1).Error
 }
