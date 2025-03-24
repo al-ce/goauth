@@ -119,3 +119,43 @@ func TestUserService_LoginUser(t *testing.T) {
 		is.True(math.Abs(exp-expectedExp) < 5)
 	})
 }
+
+func TestUserService_GetUserProfile(t *testing.T) {
+	is := is.New(t)
+
+	testDB := testutils.TestDBSetup()
+	tx := testDB.Begin()
+	defer tx.Rollback()
+
+	userRepo := repository.NewUserRepository(tx)
+	us := services.NewUserService(userRepo)
+
+	// Create test user
+	email := "testUserServiceGetUserProfile@test.com"
+	password := config.TestingPassword
+	user := &models.User{
+		Email: email, Password: password,
+	}
+	err := us.UserRepo.RegisterUser(user)
+	is.NoErr(err)
+
+	t.Run("empty userID", func(t *testing.T) {
+		userProfile, err := us.GetUserProfile("")
+		is.Equal(err, apperrors.ErrUserIdEmpty)
+		is.Equal(userProfile, nil)
+	})
+
+	t.Run("non-existent user", func(t *testing.T) {
+		randomUUID, err := uuid.NewRandom()
+		is.NoErr(err)
+		userProfile, err := us.GetUserProfile(randomUUID.String())
+		is.True(err == apperrors.ErrUserNotFound)
+		is.True(userProfile == nil)
+	})
+
+	t.Run("existing user", func(t *testing.T) {
+		userProfile, err := us.GetUserProfile(user.ID.String())
+		is.NoErr(err)
+		is.Equal(userProfile.Email, user.Email)
+	})
+}

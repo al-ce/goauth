@@ -72,7 +72,7 @@ func (us *UserService) LoginUser(email, password string) (string, error) {
 	return tokenString, nil
 }
 
-func (us *UserService) GetUserProfile(userID string) (*models.User, error) {
+func (us *UserService) GetUserProfile(userID string) (*models.UserProfile, error) {
 	if userID == "" {
 		return nil, apperrors.ErrUserIdEmpty
 	}
@@ -80,5 +80,9 @@ func (us *UserService) GetUserProfile(userID string) (*models.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	return user, nil
+	userProfile := &models.UserProfile{
+		Email:     user.Email,
+		LastLogin: user.LastLogin,
+	}
+	return userProfile, nil
 }
