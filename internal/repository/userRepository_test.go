@@ -140,6 +140,6 @@ func TestUserRepository_GetUserByID(t *testing.T) {
 		is.True(dbUser.ID != uuid.UUID{})
 		is.Equal(dbUser.Email, email)
 		is.Equal(dbUser.Password, password)
-		is.Equal(dbUser.ID, user.ID.String())
+		is.Equal(dbUser.ID, user.ID)
 	})
 }
