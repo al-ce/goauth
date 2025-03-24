@@ -24,28 +24,28 @@ func TestUserHandler_RegisterUser(t *testing.T) {
 	server := server.NewAPIServer(tx)
 	server.SetupRoutes()
 
-	validEmail := "testRegisterUser@test.com"
-	validPassword := config.TestingPassword // strong password for validator
+	email := "testRegisterUser@test.com"
+	password := config.TestingPassword // strong password for validator
 
 	// Test cases
 	testCases := []struct {
 		name     string
-		req      Request
+		req      UserCredentialsRequest
 		expected int
 	}{
 		{
 			name:     "valid request",
-			req:      Request{Email: validEmail, Password: validPassword},
+			req:      UserCredentialsRequest{Email: email, Password: password},
 			expected: http.StatusOK,
 		},
 		{
 			name:     "invalid request no email",
-			req:      Request{Password: "password"},
+			req:      UserCredentialsRequest{Password: "password"},
 			expected: http.StatusBadRequest,
 		},
 		{
 			name:     "invalid request no password",
-			req:      Request{Email: "some@test.com"},
+			req:      UserCredentialsRequest{Email: "some@test.com"},
 			expected: http.StatusBadRequest,
 		},
 	}
@@ -75,17 +75,17 @@ func TestUserHandler_Login(t *testing.T) {
 	server.SetupRoutes()
 
 	// Register two test users directly to the DB
-	validEmail1 := "testUserHandlerLoginUser@test.com"
-	validPassword1 := config.TestingPassword // strong password for validator
-	validEmail2 := "SECONDARYtestUserHandlerLoginUser@test.com"
-	validPassword2 := "SECONDARY" + config.TestingPassword
+	email1 := "testUserHandlerLoginUser@test.com"
+	password1 := config.TestingPassword // strong password for validator
+	email2 := "SECONDARYtestUserHandlerLoginUser@test.com"
+	password2 := "SECONDARY" + config.TestingPassword
 	user1 := &models.User{
-		Email:    validEmail1,
-		Password: validPassword1,
+		Email:    email1,
+		Password: password1,
 	}
 	user2 := &models.User{
-		Email:    validEmail2,
-		Password: validPassword2,
+		Email:    email2,
+		Password: password2,
 	}
 
 	err := testutils.RegisterUser(tx, user1)
@@ -97,37 +97,37 @@ func TestUserHandler_Login(t *testing.T) {
 	// Test cases
 	testCases := []struct {
 		name     string
-		req      Request
+		req      UserCredentialsRequest
 		expected int
 	}{
 		{
 			name:     "no email",
-			req:      Request{Password: "password"},
+			req:      UserCredentialsRequest{Password: "password"},
 			expected: http.StatusBadRequest,
 		},
 		{
 			name:     "no password",
-			req:      Request{Email: "some@test.com"},
+			req:      UserCredentialsRequest{Email: "some@test.com"},
 			expected: http.StatusBadRequest,
 		},
 		{
 			name:     "non-existent user",
-			req:      Request{Email: "doesNotExist@test.com", Password: validPassword1},
+			req:      UserCredentialsRequest{Email: "doesNotExist@test.com", Password: password1},
 			expected: http.StatusBadRequest,
 		},
 		{
 			name:     "incorrect password",
-			req:      Request{Email: validEmail1, Password: "thisIsNotThePassword"},
+			req:      UserCredentialsRequest{Email: email1, Password: "thisIsNotThePassword"},
 			expected: http.StatusBadRequest,
 		},
 		{
 			name:     "existing password, mismatched existing user",
-			req:      Request{Email: validEmail1, Password: validPassword2},
+			req:      UserCredentialsRequest{Email: email1, Password: password2},
 			expected: http.StatusBadRequest,
 		},
 		{
 			name:     "valid request",
-			req:      Request{Email: validEmail1, Password: validPassword1},
+			req:      UserCredentialsRequest{Email: email1, Password: password1},
 			expected: http.StatusOK,
 		},
 	}

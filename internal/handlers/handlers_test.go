@@ -10,7 +10,7 @@ import (
 	"gofit/internal/testutils"
 )
 
-type Request struct {
+type UserCredentialsRequest struct {
 	Email string
 	Password string
 }
