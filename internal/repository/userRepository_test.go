@@ -50,7 +50,7 @@ func TestUserRepository_RegisterUser(t *testing.T) {
 		is.NoErr(err)
 
 		var dbUser models.User
-		tx.First(&dbUser, user.ID)
+		tx.First(&dbUser, "ID = ?", user.ID)
 
 		is.True(dbUser.ID != uuid.UUID{})
 		is.Equal(dbUser.Email, "testRegisterUser@test.com")
