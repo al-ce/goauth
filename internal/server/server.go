@@ -42,7 +42,7 @@ func (s *APIServer) SetupRoutes() {
     protected := r.Group("")
     protected.Use(s.Middlewares.Auth.RequireAuth())
     {
-        protected.GET("/profile", s.Handlers.User.GetProfile)
+        protected.GET("/profile", s.Handlers.User.GetUserProfile)
     }
 
 	// TODO: admin group

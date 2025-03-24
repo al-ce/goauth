@@ -60,7 +60,7 @@ func (uh *UserHandler) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
-func (uh *UserHandler) GetProfile(c *gin.Context) {
+func (uh *UserHandler) GetUserProfile(c *gin.Context) {
 	userIDStr, exists := c.Get("userID")
 	if !exists {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{})
@@ -68,14 +68,14 @@ func (uh *UserHandler) GetProfile(c *gin.Context) {
 	}
 
 	userID := userIDStr.(string)
-	user, err := uh.UserService.GetUserProfile(userID)
+	userProfile, err := uh.UserService.GetUserProfile(userID)
 	if err != nil {
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"email":     user.Email,
-		"lastLogin": user.LastLogin,
+		"email":     userProfile.Email,
+		"lastLogin": userProfile.LastLogin,
 	})
 }
