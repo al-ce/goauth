@@ -60,6 +60,21 @@ func (uh *UserHandler) Login(c *gin.Context) {
 }
 
 func (uh *UserHandler) GetProfile(c *gin.Context) {
-	// TODO:
-	c.JSON(http.StatusOK, gin.H{"email": "user email will go here"})
+	userIDStr, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{})
+		return
+	}
+
+	userID := userIDStr.(string)
+	user, err := uh.UserService.GetUserProfile(userID)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{})
+	} else {
+		c.JSON(http.StatusOK, gin.H{
+			"email":     user.Email,
+			"lastLogin": user.LastLogin,
+		})
+	}
 }
