@@ -1,10 +1,13 @@
 package handlers_test
 
 import (
+	"encoding/json"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"testing"
 
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/matryer/is"
 
@@ -166,4 +169,70 @@ func TestUserHandler_Login(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestUserHandler_GetUserProfile(t *testing.T) {
+	is := is.New(t)
+
+	testDB := testutils.TestDBSetup()
+	tx := testDB.Begin()
+	defer tx.Rollback()
+
+	server := server.NewAPIServer(tx)
+	server.SetupRoutes()
+
+	// Register a test user directly to the DB
+	email := "testUserHandler_GetUserProfile@test.com"
+	password := config.TestingPassword
+	user := &models.User{
+		Email:    email,
+		Password: password,
+	}
+
+	err := testutils.RegisterUser(tx, user)
+	is.NoErr(err)
+
+	// Read registered user from DB so we can get its ID
+	var dbUser models.User
+	tx.First(&dbUser, "email = ?", user.Email)
+
+	t.Run("set userID in gin context", func(t *testing.T) {
+		validRequestPath := "/getProfileValid"
+		w := httptest.NewRecorder()
+		_, r := gin.CreateTestContext(w)
+
+		r.GET(validRequestPath, func(c *gin.Context) {
+			c.Set("userID", dbUser.ID.String())
+			server.Handlers.User.GetUserProfile(c)
+		})
+
+		req, _ := http.NewRequest(http.MethodGet, validRequestPath, nil)
+		r.ServeHTTP(w, req)
+		is.Equal(http.StatusOK, w.Code)
+
+		var response map[string]any
+		json.Unmarshal(w.Body.Bytes(), &response)
+
+		is.Equal(email, response["email"])
+		// TODO:
+		// is.True(response["lastLogin"] != nil)
+	})
+
+	t.Run("do not set userID in gin context", func(t *testing.T) {
+		invalidRequestPath := "/getProfileInvalid"
+		w := httptest.NewRecorder()
+		_, r := gin.CreateTestContext(w)
+
+		r.GET(invalidRequestPath, func(c *gin.Context) {
+			server.Handlers.User.GetUserProfile(c)
+		})
+
+		req, _ := http.NewRequest(http.MethodGet, invalidRequestPath, nil)
+		r.ServeHTTP(w, req)
+		is.Equal(http.StatusUnauthorized, w.Code)
+
+		var response map[string]any
+		json.Unmarshal(w.Body.Bytes(), &response)
+		is.Equal(0, len(response))
+	})
 }
