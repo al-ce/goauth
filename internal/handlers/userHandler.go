@@ -26,12 +26,12 @@ func (uh *UserHandler) RegisterUser(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&body); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	if err := uh.UserService.RegisterUser(body.Email, body.Password); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -45,13 +45,14 @@ func (uh *UserHandler) Login(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&body); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	tokenString, err := uh.UserService.LoginUser(body.Email, body.Password)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": apperrors.ErrInvalidLogin})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": apperrors.ErrInvalidLogin})
+		return
 	}
 
 	c.SetSameSite(http.SameSiteLaxMode)
@@ -62,19 +63,19 @@ func (uh *UserHandler) Login(c *gin.Context) {
 func (uh *UserHandler) GetProfile(c *gin.Context) {
 	userIDStr, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{})
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{})
 		return
 	}
 
 	userID := userIDStr.(string)
 	user, err := uh.UserService.GetUserProfile(userID)
-
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{})
-	} else {
-		c.JSON(http.StatusOK, gin.H{
-			"email":     user.Email,
-			"lastLogin": user.LastLogin,
-		})
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
 	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"email":     user.Email,
+		"lastLogin": user.LastLogin,
+	})
 }
