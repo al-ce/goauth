@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"github.com/matryer/is"
+
+	"gofit/pkg/config"
 )
 
 func TestNewUser(t *testing.T) {
