@@ -1,0 +1,40 @@
+# @name ping
+
+GET http://localhost:3000/ping
+
+###
+
+# @name register
+
+POST http://localhost:3000/register
+Accept: application/json
+Content-Type: application/json
+
+{
+    "email": "crashTestDummy@test.com",
+    "password": "thermostatdonationbarndiamond"
+}
+
+###
+
+# @name login
+POST http://localhost:3000/login
+Accept: application/json
+Content-Type: application/json
+
+{
+    "email": "crashTestDummy@test.com",
+    "password": "thermostatdonationbarndiamond"
+}
+
+###
+
+# @name profile
+GET http://localhost:3000/profile
+Cookie: {{login.response.headers.Set-Cookie}}
+
+###
+
+# @name permanently delete user
+GET http://localhost:3000/deleteaccount
+Cookie: {{login.response.headers.Set-Cookie}}
