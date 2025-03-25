@@ -159,3 +159,39 @@ func TestUserService_GetUserProfile(t *testing.T) {
 		is.Equal(userProfile.Email, user.Email)
 	})
 }
+func TestUserService_PermanentlyDeleteUser(t *testing.T) {
+	is := is.New(t)
+
+	testDB := testutils.TestDBSetup()
+	tx := testDB.Begin()
+	defer tx.Rollback()
+
+	userRepo := repository.NewUserRepository(tx)
+	us := services.NewUserService(userRepo)
+
+	// Create test user
+	email := "testUserServicePermanentlyDeleteUser@test.com"
+	password := config.TestingPassword
+	user := &models.User{
+		Email: email, Password: password,
+	}
+	err := us.UserRepo.RegisterUser(user)
+	is.NoErr(err)
+
+	t.Run("empty userID", func(t *testing.T) {
+		err := us.PermanentlyDeleteUser("")
+		is.Equal(err, apperrors.ErrUserIdEmpty)
+	})
+
+	t.Run("non-existent user", func(t *testing.T) {
+		randomUUID, err := uuid.NewRandom()
+		is.NoErr(err)
+		err = us.PermanentlyDeleteUser(randomUUID.String())
+		is.True(err == apperrors.ErrUserNotFound)
+	})
+
+	t.Run("existing user", func(t *testing.T) {
+		err := us.PermanentlyDeleteUser(user.ID.String())
+		is.NoErr(err)
+	})
+}
