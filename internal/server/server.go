@@ -43,6 +43,7 @@ func (s *APIServer) SetupRoutes() {
     protected.Use(s.Middlewares.Auth.RequireAuth())
     {
         protected.GET("/profile", s.Handlers.User.GetUserProfile)
+        protected.GET("/deleteaccount", s.Handlers.User.PermanentlyDeleteUser)
     }
 
 	// TODO: admin group

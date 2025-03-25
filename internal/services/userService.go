@@ -86,3 +86,11 @@ func (us *UserService) GetUserProfile(userID string) (*models.UserProfile, error
 	}
 	return userProfile, nil
 }
+
+func (us *UserService) PermanentlyDeleteUser(userID string) error {
+	if userID == "" {
+		return apperrors.ErrUserIdEmpty
+	}
+	err := us.UserRepo.PermanentlyDeleteUser(userID)
+	return err
+}

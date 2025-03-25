@@ -81,3 +81,20 @@ func (uh *UserHandler) GetUserProfile(c *gin.Context) {
 		"lastLogin": userProfile.LastLogin,
 	})
 }
+
+// User can permanently delete their account, instead of setting DeletedAt
+func (uh *UserHandler) PermanentlyDeleteUser(c *gin.Context) {
+	userIDStr, exists := c.Get("userID")
+	if !exists {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{})
+		return
+	}
+	userID := userIDStr.(string)
+	err := uh.UserService.PermanentlyDeleteUser(userID)
+	if err != nil {
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	c.String(http.StatusOK, "account deleted")
+}
