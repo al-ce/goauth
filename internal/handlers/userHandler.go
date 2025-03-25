@@ -57,7 +57,9 @@ func (uh *UserHandler) Login(c *gin.Context) {
 
 	c.SetSameSite(http.SameSiteLaxMode)
 	c.SetCookie(config.JwtCookieName, tokenString, config.TokenExpiration, "", "", true, true)
-	c.JSON(http.StatusOK, gin.H{})
+	c.JSON(http.StatusOK, gin.H{
+		"message": "login success",
+	})
 }
 
 func (uh *UserHandler) GetUserProfile(c *gin.Context) {
