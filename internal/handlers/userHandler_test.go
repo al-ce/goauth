@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"github.com/matryer/is"
 
 	"gofit/internal/models"
@@ -216,6 +217,24 @@ func TestUserHandler_GetUserProfile(t *testing.T) {
 		is.Equal(email, response["email"])
 		// TODO:
 		// is.True(response["lastLogin"] != nil)
+	})
+
+	// This is an unlikely scenario?
+	t.Run("set invalid userID", func(t *testing.T) {
+		validRequestPath := "/getProfileValid"
+		w := httptest.NewRecorder()
+		_, r := gin.CreateTestContext(w)
+
+		r.GET(validRequestPath, func(c *gin.Context) {
+			randUUID, err := uuid.NewRandom()
+			is.NoErr(err)
+			c.Set("userID", randUUID.String())
+			server.Handlers.User.GetUserProfile(c)
+		})
+
+		req, _ := http.NewRequest(http.MethodGet, validRequestPath, nil)
+		r.ServeHTTP(w, req)
+		is.Equal(http.StatusBadRequest, w.Code)
 	})
 
 	t.Run("do not set userID in gin context", func(t *testing.T) {
