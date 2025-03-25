@@ -221,7 +221,7 @@ func TestUserHandler_GetUserProfile(t *testing.T) {
 
 	// This is an unlikely scenario?
 	t.Run("set invalid userID", func(t *testing.T) {
-		validRequestPath := "/getProfileValid"
+		validRequestPath := "/getProfileValidID"
 		w := httptest.NewRecorder()
 		_, r := gin.CreateTestContext(w)
 
@@ -238,12 +238,91 @@ func TestUserHandler_GetUserProfile(t *testing.T) {
 	})
 
 	t.Run("do not set userID in gin context", func(t *testing.T) {
-		invalidRequestPath := "/getProfileInvalid"
+		invalidRequestPath := "/getProfileNoUserID"
 		w := httptest.NewRecorder()
 		_, r := gin.CreateTestContext(w)
 
 		r.GET(invalidRequestPath, func(c *gin.Context) {
 			server.Handlers.User.GetUserProfile(c)
+		})
+
+		req, _ := http.NewRequest(http.MethodGet, invalidRequestPath, nil)
+		r.ServeHTTP(w, req)
+		is.Equal(http.StatusUnauthorized, w.Code)
+
+		var response map[string]any
+		json.Unmarshal(w.Body.Bytes(), &response)
+		is.Equal(0, len(response))
+	})
+}
+func TestUserHandler_PermanentlyDeleteUser(t *testing.T) {
+	is := is.New(t)
+
+	testDB := testutils.TestDBSetup()
+	tx := testDB.Begin()
+	defer tx.Rollback()
+
+	server := server.NewAPIServer(tx)
+	server.SetupRoutes()
+
+	// Register a test user directly to the DB
+	email := "testUserHandler_PermanentlyDeleteUser@test.com"
+	password := config.TestingPassword
+	user := &models.User{
+		Email:    email,
+		Password: password,
+	}
+
+	err := testutils.RegisterUser(tx, user)
+	is.NoErr(err)
+
+	// Read registered user from DB so we can get its ID
+	var dbUser models.User
+	tx.First(&dbUser, "email = ?", user.Email)
+
+	t.Run("set userID in gin context", func(t *testing.T) {
+		validRequestPath := "/deleteAccountValid"
+		w := httptest.NewRecorder()
+		_, r := gin.CreateTestContext(w)
+
+		r.GET(validRequestPath, func(c *gin.Context) {
+			c.Set("userID", dbUser.ID.String())
+			server.Handlers.User.PermanentlyDeleteUser(c)
+		})
+
+		req, _ := http.NewRequest(http.MethodGet, validRequestPath, nil)
+		r.ServeHTTP(w, req)
+		is.Equal(http.StatusOK, w.Code)
+
+		response := w.Body.String()
+		is.Equal("account deleted", response)
+	})
+
+	// This is an unlikely scenario?
+	t.Run("set invalid userID", func(t *testing.T) {
+		validRequestPath := "/deleteAccountInvalidID"
+		w := httptest.NewRecorder()
+		_, r := gin.CreateTestContext(w)
+
+		r.GET(validRequestPath, func(c *gin.Context) {
+			randUUID, err := uuid.NewRandom()
+			is.NoErr(err)
+			c.Set("userID", randUUID.String())
+			server.Handlers.User.PermanentlyDeleteUser(c)
+		})
+
+		req, _ := http.NewRequest(http.MethodGet, validRequestPath, nil)
+		r.ServeHTTP(w, req)
+		is.Equal(http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("do not set userID in gin context", func(t *testing.T) {
+		invalidRequestPath := "/deleteAccountNoUserID"
+		w := httptest.NewRecorder()
+		_, r := gin.CreateTestContext(w)
+
+		r.GET(invalidRequestPath, func(c *gin.Context) {
+			server.Handlers.User.PermanentlyDeleteUser(c)
 		})
 
 		req, _ := http.NewRequest(http.MethodGet, invalidRequestPath, nil)
