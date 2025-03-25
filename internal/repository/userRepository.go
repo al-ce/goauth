@@ -59,7 +59,7 @@ func (r *UserRepository) GetUserByID(userID string) (*models.User, error) {
 	return &user, nil
 }
 
-func (r *UserRepository) PermanentlyDeleteUser(userID string) error {
+func (r *UserRepository) PermanentlyDeleteUser(userID string) (int64, error) {
 	result := r.DB.Unscoped().Where("id = ?", userID).Delete(&models.User{})
-	return result.Error
+	return result.RowsAffected, result.Error
 }

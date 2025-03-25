@@ -91,6 +91,12 @@ func (us *UserService) PermanentlyDeleteUser(userID string) error {
 	if userID == "" {
 		return apperrors.ErrUserIdEmpty
 	}
-	err := us.UserRepo.PermanentlyDeleteUser(userID)
-	return err
+	rowsAffected, err := us.UserRepo.PermanentlyDeleteUser(userID)
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return apperrors.ErrUserNotFound
+	}
+	return nil
 }
