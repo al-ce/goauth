@@ -38,3 +38,16 @@ Cookie: {{login.response.headers.Set-Cookie}}
 # @name permanently delete user
 GET http://localhost:3000/deleteaccount
 Cookie: {{login.response.headers.Set-Cookie}}
+
+###
+
+# @name update
+POST http://localhost:3000/updateuser
+Cookie: {{login.response.headers.Set-Cookie}}
+Accept: application/json
+Content-Type: application/json
+
+{
+    "email": "crashTestDummy22@test.com",
+    "password": "thermostatdonationbarndiamond22"
+}

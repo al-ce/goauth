@@ -63,3 +63,18 @@ func (r *UserRepository) PermanentlyDeleteUser(userID string) (int64, error) {
 	result := r.DB.Unscoped().Where("id = ?", userID).Delete(&models.User{})
 	return result.RowsAffected, result.Error
 }
+
+func (r *UserRepository) UpdateUser(userID, email, password string) (int64, error) {
+	var user models.User
+	r.DB.First(&user, "ID = ?", userID)
+
+	defaultUUID := uuid.UUID{}
+	if user.ID == defaultUUID {
+		return 0, apperrors.ErrUserNotFound
+	}
+
+	result := r.DB.Model(&user).Updates(
+		models.User{Email: email, Password: password},
+	)
+	return result.RowsAffected, result.Error
+}

@@ -16,4 +16,5 @@ var (
 	ErrInvalidLogin    = New("Invalid login credentials")
 	ErrTokenGeneration = New("Could not generate token")
 	ErrUserIdEmpty     = New("User ID is empty")
+	ErrFailedUserUpade = New("Could not update user")
 )

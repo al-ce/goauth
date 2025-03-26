@@ -100,3 +100,37 @@ func (us *UserService) PermanentlyDeleteUser(userID string) error {
 	}
 	return nil
 }
+
+func (us *UserService) UpdateUser(userID, newEmail, newPassword string) error {
+	if userID == "" {
+		return apperrors.ErrUserIdEmpty
+	}
+	user, err := us.UserRepo.GetUserByID(userID)
+	if err != nil {
+		return err
+	}
+
+	// "Ternary", only use new fields
+	email, password := user.Email, user.Password
+	if newEmail != "" {
+		email = newEmail
+	}
+	if newPassword != "" {
+		password = newPassword
+	}
+
+	// Use NewUser function for email/pw validation and hashing
+	updatedUser, err := models.NewUser(email, password)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := us.UserRepo.UpdateUser(userID, updatedUser.Email, updatedUser.Password)
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return apperrors.ErrFailedUserUpade
+	}
+	return nil
+}

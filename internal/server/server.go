@@ -39,12 +39,13 @@ func (s *APIServer) SetupRoutes() {
 	r.POST("/register", s.Handlers.User.RegisterUser)
 	r.POST("/login", s.Handlers.User.Login)
 
-    protected := r.Group("")
-    protected.Use(s.Middlewares.Auth.RequireAuth())
-    {
-        protected.GET("/profile", s.Handlers.User.GetUserProfile)
-        protected.GET("/deleteaccount", s.Handlers.User.PermanentlyDeleteUser)
-    }
+	protected := r.Group("")
+	protected.Use(s.Middlewares.Auth.RequireAuth())
+	{
+		protected.GET("/profile", s.Handlers.User.GetUserProfile)
+		protected.GET("/deleteaccount", s.Handlers.User.PermanentlyDeleteUser)
+		protected.POST("/updateuser", s.Handlers.User.UpdateUser)
+	}
 
 	// TODO: admin group
 
@@ -53,7 +54,6 @@ func (s *APIServer) SetupRoutes() {
 	// {
 	// 	admin.GET("/users", someHandler)
 	// }
-
 }
 
 func (s *APIServer) Run() {
