@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/google/uuid"
@@ -39,23 +40,33 @@ func (ur *UserRepository) RegisterUser(u *models.User) error {
 
 func (r *UserRepository) LookupUser(email string) (*models.User, error) {
 	var user models.User
-	r.DB.First(&user, "email = ?", email)
 
-	defaultUUID := uuid.UUID{}
-	if user.ID == defaultUUID {
-		return nil, apperrors.ErrUserNotFound
+	result := r.DB.First(&user, "email = ?", email)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, apperrors.ErrUserNotFound
+		}
+		return nil, result.Error
 	}
+
 	return &user, nil
 }
 
 func (r *UserRepository) GetUserByID(userID string) (*models.User, error) {
 	var user models.User
-	r.DB.First(&user, "ID = ?", userID)
-
-	defaultUUID := uuid.UUID{}
-	if user.ID == defaultUUID {
-		return nil, apperrors.ErrUserNotFound
+	id, err := uuid.Parse(userID)
+	if err != nil {
+		return nil, err
 	}
+
+	result := r.DB.First(&user, "id = ?", id)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, apperrors.ErrUserNotFound
+		}
+		return nil, result.Error
+	}
+
 	return &user, nil
 }
 
@@ -66,15 +77,22 @@ func (r *UserRepository) PermanentlyDeleteUser(userID string) (int64, error) {
 
 func (r *UserRepository) UpdateUser(userID, email, password string) (int64, error) {
 	var user models.User
-	r.DB.First(&user, "ID = ?", userID)
-
-	defaultUUID := uuid.UUID{}
-	if user.ID == defaultUUID {
-		return 0, apperrors.ErrUserNotFound
+	id, err := uuid.Parse(userID)
+	if err != nil {
+		return 0, err
 	}
 
-	result := r.DB.Model(&user).Updates(
+	result := r.DB.First(&user, "id = ?", id)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return 0, apperrors.ErrUserNotFound
+		}
+		return 0, result.Error
+	}
+
+	result = r.DB.Model(&user).Updates(
 		models.User{Email: email, Password: password},
 	)
+
 	return result.RowsAffected, result.Error
 }

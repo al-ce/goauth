@@ -46,9 +46,8 @@ func TestUserService_RegisterUser(t *testing.T) {
 
 		// User actually exists in db
 		var user models.User
-		var defaultUUID uuid.UUID
-		us.UserRepo.DB.First(&user, "email = ?", email)
-		is.True(user.ID != defaultUUID)
+		result := us.UserRepo.DB.First(&user, "email = ?", email)
+		is.NoErr(result.Error)
 	})
 }
 
