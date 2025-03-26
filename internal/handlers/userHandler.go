@@ -109,36 +109,17 @@ func (uh *UserHandler) UpdateUser(c *gin.Context) {
 
 	userID := userIDStr.(string)
 
-	// Check request
-	var body struct {
-		NewEmail    string `json:"email"`
-		NewPassword string `json:"password"`
-	}
+	var requestData map[string]any
 
-	if err := c.ShouldBindJSON(&body); err != nil {
+	if err := c.ShouldBindJSON(&requestData); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Abort if request contains neither a new password or new email
-	if body.NewEmail == "" && body.NewPassword == "" {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": "no email or password provided",
-		})
-	}
-
-	if err := uh.UserService.UpdateUser(userID, body.NewEmail, body.NewPassword); err != nil {
+	if err := uh.UserService.UpdateUser(userID, requestData); err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	resp := make(map[string]any)
-	if body.NewEmail != "" {
-		resp["updatedEmail"] = body.NewEmail
-	}
-	if body.NewPassword != "" {
-		resp["updatedPassword"] = body.NewPassword
-	}
-
-	c.JSON(http.StatusOK, resp)
+	c.JSON(http.StatusOK, gin.H{"message": "user updated"})
 }

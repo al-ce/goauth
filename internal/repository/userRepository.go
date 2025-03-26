@@ -75,24 +75,19 @@ func (r *UserRepository) PermanentlyDeleteUser(userID string) (int64, error) {
 	return result.RowsAffected, result.Error
 }
 
-func (r *UserRepository) UpdateUser(userID, email, password string) (int64, error) {
-	var user models.User
-	id, err := uuid.Parse(userID)
+func (r *UserRepository) UpdateUser(userID string, request map[string]any) error {
+	_, err := uuid.Parse(userID)
 	if err != nil {
-		return 0, err
+		return err
 	}
 
-	result := r.DB.First(&user, "id = ?", id)
+	result := r.DB.Model(&models.User{}).Where("id = ?", userID).Select("*").Updates(request)
+
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return 0, apperrors.ErrUserNotFound
+			return apperrors.ErrUserNotFound
 		}
-		return 0, result.Error
+		return result.Error
 	}
-
-	result = r.DB.Model(&user).Updates(
-		models.User{Email: email, Password: password},
-	)
-
-	return result.RowsAffected, result.Error
+	return result.Error
 }
