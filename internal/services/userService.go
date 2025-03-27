@@ -1,10 +1,12 @@
 package services
 
 import (
+	"net/mail"
 	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	passwordvalidator "github.com/wagslane/go-password-validator"
 	"golang.org/x/crypto/bcrypt"
 
 	"gofit/internal/models"
@@ -40,19 +42,20 @@ func (us *UserService) RegisterUser(email, password string) error {
 }
 
 func (us *UserService) LoginUser(email, password string) (string, error) {
+	var err error
 	if email == "" {
-		return "", apperrors.ErrEmailIsEmpty
+		err := apperrors.ErrEmailIsEmpty
+		return "", err
 	}
 	if password == "" {
-		return "", apperrors.ErrPasswordIsEmpty
+		err := apperrors.ErrPasswordIsEmpty
+		return "", err
 	}
 
 	user, err := us.UserRepo.LookupUser(email)
 	if err != nil {
 		return "", err
 	}
-
-	// TODO: update last login
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
@@ -67,6 +70,12 @@ func (us *UserService) LoginUser(email, password string) (string, error) {
 	tokenString, err := token.SignedString([]byte(os.Getenv(config.JwtCookieName)))
 	if err != nil {
 		return "", apperrors.ErrTokenGeneration
+	}
+
+	// Update last login time
+	requestData := map[string]any{"last_login": time.Now()}
+	if err := us.UpdateUser(user.ID.String(), requestData); err != nil {
+		return "", err
 	}
 
 	return tokenString, nil
@@ -105,5 +114,28 @@ func (us *UserService) UpdateUser(userID string, request map[string]any) error {
 	if userID == "" {
 		return apperrors.ErrUserIdEmpty
 	}
+
+	if password, ok := request["password"].(string); ok && password != "" {
+		const minEntropyBits = 64
+		if err := passwordvalidator.Validate(password, minEntropyBits); err != nil {
+			return err
+		}
+
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+		if err != nil {
+			return err
+		}
+		request["password"] = string(hashedPassword)
+	}
+
+	if email, ok := request["email"].(string); ok && email != "" {
+		if _, err := mail.ParseAddress(email); err != nil {
+			return err
+		}
+		if len(email) > 254 {
+			return apperrors.ErrEmailMaxLength
+		}
+	}
+
 	return us.UserRepo.UpdateUser(userID, request)
 }

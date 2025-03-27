@@ -106,13 +106,29 @@ func (uh *UserHandler) UpdateUser(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{})
 		return
 	}
-
 	userID := userIDStr.(string)
 
-	var requestData map[string]any
+	// Only accept email or password
+	var body struct {
+		Email    string `json:"email,omitempty" binding:"omitempty,email"`
+		Password string `json:"password,omitempty" binding:"omitempty,min=8"`
+	}
 
-	if err := c.ShouldBindJSON(&requestData); err != nil {
+	if err := c.ShouldBindJSON(&body); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	requestData := make(map[string]any)
+	if body.Email != "" {
+		requestData["email"] = body.Email
+	}
+	if body.Password != "" {
+		requestData["password"] = body.Password
+	}
+
+	if len(requestData) == 0 {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no valid fields provided"})
 		return
 	}
 
