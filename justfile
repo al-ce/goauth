@@ -18,7 +18,7 @@ test path="":
 
 # Initialize development database
 init-db:
-    sudo -u postgres psql -f scripts/init_prod.sql
+    sudo -u postgres psql -f scripts/init_dev.sql
 
 # Initialize test database
 init-test-db:
