@@ -17,4 +17,5 @@ var (
 	ErrTokenGeneration = New("Could not generate token")
 	ErrUserIdEmpty     = New("User ID is empty")
 	ErrFailedUserUpade = New("Could not update user")
+	ErrNoChangesMade   = New("Tried to update user but no changes were made")
 )

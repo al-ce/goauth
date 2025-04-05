@@ -76,18 +76,20 @@ func (r *UserRepository) PermanentlyDeleteUser(userID string) (int64, error) {
 }
 
 func (r *UserRepository) UpdateUser(userID string, request map[string]any) error {
-	_, err := uuid.Parse(userID)
-	if err != nil {
-		return err
+	var exists bool
+	r.DB.Model(&models.User{}).Select("1").Where("id = ?", userID).First(&exists)
+	if !exists {
+		return apperrors.ErrUserNotFound
 	}
 
-	result := r.DB.Model(&models.User{}).Where("id = ?", userID).Select("*").Updates(request)
-
+	result := r.DB.Model(&models.User{}).Where("id = ?", userID).Updates(request)
 	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return apperrors.ErrUserNotFound
-		}
 		return result.Error
 	}
-	return result.Error
+
+	if result.RowsAffected == 0 {
+		return apperrors.ErrNoChangesMade
+	}
+
+	return nil
 }
