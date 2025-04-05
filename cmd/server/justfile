@@ -17,7 +17,7 @@ default:
 # watch for changes and run the server
 watch:
     CompileDaemon \
-    --build="go build -o gofit ./cmd/server/main.go" \
+    --build="go build -o gofit ./main.go" \
     --command="./gofit"
 
 # go test {{path}} and format the output
