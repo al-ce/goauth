@@ -1,13 +1,14 @@
 package models
 
 import (
-	"gofit/pkg/apperrors"
 	"net/mail"
 	"time"
 
 	"github.com/google/uuid"
 	passwordvalidator "github.com/wagslane/go-password-validator"
 	"golang.org/x/crypto/bcrypt"
+
+	"gofit/pkg/apperrors"
 )
 
 type User struct {
