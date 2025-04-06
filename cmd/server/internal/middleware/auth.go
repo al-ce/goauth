@@ -15,12 +15,14 @@ import (
 )
 
 type AuthMiddleware struct {
-	UserRepo *repository.UserRepository
+	UserRepo    *repository.UserRepository
+	SessionRepo *repository.SessionRepository
 }
 
 func NewAuthMiddleware(db *gorm.DB) *AuthMiddleware {
 	return &AuthMiddleware{
 		UserRepo: repository.NewUserRepository(db),
+		SessionRepo: repository.NewSessionRepository(db),
 	}
 }
 
@@ -58,15 +60,14 @@ func (am *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 			return
 		}
 
-		// Get user ID and store in context
-		userID, ok := claims["sub"].(string)
-		if !ok {
-			log.Debug().Msg("Invalid user ID in token")
+		session, err := am.SessionRepo.GetSessionByToken(tokenString)
+		if err != nil {
+			log.Debug().Err(err).Msg("Session not found")
 			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 
-		c.Set("userID", userID)
+		c.Set("userID", session.UserID.String())
 
 		c.Next()
 	}

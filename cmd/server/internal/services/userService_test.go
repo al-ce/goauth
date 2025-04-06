@@ -26,7 +26,8 @@ func TestUserService_RegisterUser(t *testing.T) {
 	defer tx.Rollback()
 
 	userRepo := repository.NewUserRepository(tx)
-	us := services.NewUserService(userRepo)
+	sessionRepo := repository.NewSessionRepository(tx)
+	us := services.NewUserService(userRepo, sessionRepo)
 
 	t.Run("empty email", func(t *testing.T) {
 		err := us.RegisterUser("", "password")
@@ -55,46 +56,90 @@ func TestUserService_LoginUser(t *testing.T) {
 	is := is.New(t)
 
 	testDB := testutils.TestDBSetup()
-	tx := testDB.Begin()
-	defer tx.Rollback()
 
-	userRepo := repository.NewUserRepository(tx)
-	us := services.NewUserService(userRepo)
+	// We need separate transactions for each test case due to unique session token constraints
+
+	// Create test user data once
+	email := "testUserServiceLoginUser@test.com"
+	password := config.TestingPassword
 
 	t.Run("non existing user", func(t *testing.T) {
+		// Each test case gets its own transaction
+		tx := testDB.Begin()
+		defer tx.Rollback()
+
+		userRepo := repository.NewUserRepository(tx)
+		sessionRepo := repository.NewSessionRepository(tx)
+		us := services.NewUserService(userRepo, sessionRepo)
+
 		_, err := us.LoginUser("doesNotExist@test.com", "password")
 		is.Equal(err, apperrors.ErrUserNotFound)
 	})
 
 	t.Run("empty email", func(t *testing.T) {
+		tx := testDB.Begin()
+		defer tx.Rollback()
+
+		userRepo := repository.NewUserRepository(tx)
+		sessionRepo := repository.NewSessionRepository(tx)
+		us := services.NewUserService(userRepo, sessionRepo)
+
 		_, err := us.LoginUser("", "password")
 		is.Equal(err, apperrors.ErrEmailIsEmpty)
 	})
 
 	t.Run("empty password", func(t *testing.T) {
+		tx := testDB.Begin()
+		defer tx.Rollback()
+
+		userRepo := repository.NewUserRepository(tx)
+		sessionRepo := repository.NewSessionRepository(tx)
+		us := services.NewUserService(userRepo, sessionRepo)
+
 		_, err := us.LoginUser("some@test.com", "")
 		is.Equal(err, apperrors.ErrPasswordIsEmpty)
 	})
 
-	// Create test user
-	email := "testUserServiceLoginUser@test.com"
-	password := config.TestingPassword
-	err := us.RegisterUser(email, password)
-	is.NoErr(err)
+	// For the remaining tests that need a user, create a separate transaction and user
+	t.Run("invalid password and valid login", func(t *testing.T) {
+		tx := testDB.Begin()
+		defer tx.Rollback()
 
-	t.Run("invalid password", func(t *testing.T) {
-		_, err := us.LoginUser(email, "thisIsNotThePassword")
-		is.Equal(err, apperrors.ErrInvalidLogin)
-	})
+		userRepo := repository.NewUserRepository(tx)
+		sessionRepo := repository.NewSessionRepository(tx)
+		us := services.NewUserService(userRepo, sessionRepo)
 
-	t.Run("valid login", func(t *testing.T) {
-		token, err := us.LoginUser(email, password)
+		// Create test user in this transaction
+		err := us.RegisterUser(email, password)
 		is.NoErr(err)
-		is.True(token != "")
+
+		t.Run("invalid password", func(t *testing.T) {
+			_, err := us.LoginUser(email, "thisIsNotThePassword")
+			is.Equal(err, apperrors.ErrInvalidLogin)
+		})
+
+		t.Run("valid login", func(t *testing.T) {
+			token, err := us.LoginUser(email, password)
+			is.NoErr(err)
+			is.True(token != "")
+		})
 	})
 
 	t.Run("expected token claims", func(t *testing.T) {
-		token, err := us.LoginUser(email, password)
+		// Use its own transaction for this test
+		tx := testDB.Begin()
+		defer tx.Rollback()
+
+		userRepo := repository.NewUserRepository(tx)
+		sessionRepo := repository.NewSessionRepository(tx)
+		us := services.NewUserService(userRepo, sessionRepo)
+
+		// Create a test user specifically for this test
+		testEmail := "tokenClaimsTest@example.com"
+		err := us.RegisterUser(testEmail, password)
+		is.NoErr(err)
+
+		token, err := us.LoginUser(testEmail, password)
 		is.NoErr(err)
 
 		parsedToken, err := jwt.Parse(token, func(token *jwt.Token) (any, error) {
@@ -106,7 +151,7 @@ func TestUserService_LoginUser(t *testing.T) {
 		claims, ok := parsedToken.Claims.(jwt.MapClaims)
 		is.True(ok)
 
-		user, err := userRepo.LookupUser(email)
+		user, err := userRepo.LookupUser(testEmail)
 		is.NoErr(err)
 
 		is.Equal(claims["sub"], user.ID.String())
@@ -116,6 +161,11 @@ func TestUserService_LoginUser(t *testing.T) {
 		expectedExp := float64(time.Now().Unix() + config.TokenExpiration)
 		// Account for 5 second expiry difference
 		is.True(math.Abs(exp-expectedExp) < 5)
+
+		// Verify session was created
+		session, err := sessionRepo.GetSessionByToken(token)
+		is.NoErr(err)
+		is.Equal(session.UserID.String(), user.ID.String())
 	})
 }
 
@@ -127,7 +177,8 @@ func TestUserService_GetUserProfile(t *testing.T) {
 	defer tx.Rollback()
 
 	userRepo := repository.NewUserRepository(tx)
-	us := services.NewUserService(userRepo)
+	sessionRepo := repository.NewSessionRepository(tx)
+	us := services.NewUserService(userRepo, sessionRepo)
 
 	// Create test user
 	email := "testUserServiceGetUserProfile@test.com"
@@ -158,6 +209,7 @@ func TestUserService_GetUserProfile(t *testing.T) {
 		is.Equal(userProfile.Email, user.Email)
 	})
 }
+
 func TestUserService_PermanentlyDeleteUser(t *testing.T) {
 	is := is.New(t)
 
@@ -166,7 +218,8 @@ func TestUserService_PermanentlyDeleteUser(t *testing.T) {
 	defer tx.Rollback()
 
 	userRepo := repository.NewUserRepository(tx)
-	us := services.NewUserService(userRepo)
+	sessionRepo := repository.NewSessionRepository(tx)
+	us := services.NewUserService(userRepo, sessionRepo)
 
 	// Create test user
 	email := "testUserServicePermanentlyDeleteUser@test.com"

@@ -64,12 +64,13 @@ func (s *APIServer) Run() {
 func initRepositories(db *gorm.DB) *Repositories {
 	return &Repositories{
 		User: repository.NewUserRepository(db),
+		Session: repository.NewSessionRepository(db),
 	}
 }
 
 func initServices(repos *Repositories) *Services {
 	return &Services{
-		User: services.NewUserService(repos.User),
+		User: services.NewUserService(repos.User, repos.Session),
 	}
 }
 
@@ -87,6 +88,7 @@ func initMiddlewares(db *gorm.DB) *Middlewares {
 
 type Repositories struct {
 	User *repository.UserRepository
+	Session *repository.SessionRepository
 }
 
 type Services struct {

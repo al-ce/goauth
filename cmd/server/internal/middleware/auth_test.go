@@ -13,6 +13,8 @@ import (
 	"github.com/matryer/is"
 
 	"gofit/internal/middleware"
+	"gofit/internal/models"
+	"gofit/internal/repository"
 	"gofit/internal/testutils"
 	"gofit/pkg/config"
 )
@@ -25,6 +27,7 @@ func TestMiddlewareAuth_RequireAuth(t *testing.T) {
 	defer tx.Rollback()
 
 	authMw := middleware.NewAuthMiddleware(tx)
+	sessionRepo := repository.NewSessionRepository(tx) // Required for session management
 
 	router := gin.New()
 
@@ -45,6 +48,15 @@ func TestMiddlewareAuth_RequireAuth(t *testing.T) {
 		"exp": time.Now().Unix() + config.TokenExpiration,
 	})
 	tokenString, err := token.SignedString([]byte(os.Getenv(config.JwtCookieName)))
+	is.NoErr(err)
+
+	// Create a session record for this token
+	session := &models.Session{
+		UserID:    randUUID,
+		Token:     tokenString,
+		ExpiresAt: time.Now().Add(time.Hour * 24),
+	}
+	err = sessionRepo.CreateSession(session)
 	is.NoErr(err)
 
 	t.Run("with valid token", func(t *testing.T) {
@@ -70,5 +82,33 @@ func TestMiddlewareAuth_RequireAuth(t *testing.T) {
 		router.ServeHTTP(rrNoAuth, reqNoAuth)
 
 		is.Equal(http.StatusUnauthorized, rrNoAuth.Code)
+	})
+
+	t.Run("with expired token in db", func(t *testing.T) {
+		expiredUUID, _ := uuid.NewRandom()
+		expiredToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+			"sub": expiredUUID.String(),
+			"exp": time.Now().Unix() + config.TokenExpiration,
+		})
+		expiredTokenString, _ := expiredToken.SignedString([]byte(os.Getenv(config.JwtCookieName)))
+
+		expiredSession := &models.Session{
+			UserID:    expiredUUID,
+			Token:     expiredTokenString,
+			ExpiresAt: time.Now().Add(-1 * time.Hour),
+		}
+		err = sessionRepo.CreateSession(expiredSession)
+		is.NoErr(err)
+
+		req, _ := http.NewRequest("GET", "/protected", nil)
+		req.AddCookie(&http.Cookie{
+			Name:  config.JwtCookieName,
+			Value: expiredTokenString,
+		})
+
+		rr := httptest.NewRecorder()
+		router.ServeHTTP(rr, req)
+
+		is.Equal(http.StatusUnauthorized, rr.Code)
 	})
 }

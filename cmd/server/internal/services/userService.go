@@ -16,12 +16,14 @@ import (
 )
 
 type UserService struct {
-	UserRepo *repository.UserRepository
+	UserRepo    *repository.UserRepository
+	SessionRepo *repository.SessionRepository
 }
 
-func NewUserService(ur *repository.UserRepository) *UserService {
+func NewUserService(ur *repository.UserRepository, sr *repository.SessionRepository) *UserService {
 	return &UserService{
-		UserRepo: ur,
+		UserRepo:    ur,
+		SessionRepo: sr,
 	}
 }
 
@@ -70,6 +72,17 @@ func (us *UserService) LoginUser(email, password string) (string, error) {
 	tokenString, err := token.SignedString([]byte(os.Getenv(config.JwtCookieName)))
 	if err != nil {
 		return "", apperrors.ErrTokenGeneration
+	}
+
+	// Create a session
+	session := &models.Session{
+		UserID:    user.ID,
+		Token:     tokenString,
+		ExpiresAt: time.Now().Add(time.Duration(config.TokenExpiration) * time.Second),
+	}
+
+	if err := us.SessionRepo.CreateSession(session); err != nil {
+		return "", err
 	}
 
 	// Update last login time
