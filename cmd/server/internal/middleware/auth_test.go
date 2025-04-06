@@ -40,8 +40,7 @@ func TestMiddlewareAuth_RequireAuth(t *testing.T) {
 	router.GET("/protected", authMw.RequireAuth(), testHandler)
 
 	// Generate a test token
-	randUUID, err := uuid.NewRandom()
-	is.NoErr(err)
+	randUUID := uuid.New()
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": randUUID.String(),
@@ -51,11 +50,9 @@ func TestMiddlewareAuth_RequireAuth(t *testing.T) {
 	is.NoErr(err)
 
 	// Create a session record for this token
-	session := &models.Session{
-		UserID:    randUUID,
-		Token:     tokenString,
-		ExpiresAt: time.Now().Add(time.Hour * 24),
-	}
+	session, err := models.NewSession(randUUID, tokenString, time.Now().Add(time.Hour*24))
+	is.NoErr(err)
+
 	err = sessionRepo.CreateSession(session)
 	is.NoErr(err)
 
@@ -85,18 +82,16 @@ func TestMiddlewareAuth_RequireAuth(t *testing.T) {
 	})
 
 	t.Run("with expired token in db", func(t *testing.T) {
-		expiredUUID, _ := uuid.NewRandom()
+		expiredUUID := uuid.New()
 		expiredToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 			"sub": expiredUUID.String(),
 			"exp": time.Now().Unix() + config.TokenExpiration,
 		})
 		expiredTokenString, _ := expiredToken.SignedString([]byte(os.Getenv(config.JwtCookieName)))
 
-		expiredSession := &models.Session{
-			UserID:    expiredUUID,
-			Token:     expiredTokenString,
-			ExpiresAt: time.Now().Add(-1 * time.Hour),
-		}
+		expiredSession, err := models.NewSession(expiredUUID, expiredTokenString, time.Now().Add(-1*time.Hour))
+		is.NoErr(err)
+
 		err = sessionRepo.CreateSession(expiredSession)
 		is.NoErr(err)
 

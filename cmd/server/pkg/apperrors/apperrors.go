@@ -18,4 +18,7 @@ var (
 	ErrUserIdEmpty     = New("User ID is empty")
 	ErrFailedUserUpade = New("Could not update user")
 	ErrNoChangesMade   = New("Tried to update user but no changes were made")
+	ErrSessionIsNil    = New("Session is nil")
+	ErrSessionAlreadyExists   = New("Session already exists")
+	ErrTokenIsEmpty    = New("Token is empty")
 )

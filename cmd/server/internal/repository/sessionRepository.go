@@ -6,6 +6,7 @@ import (
 	"gorm.io/gorm"
 
 	"gofit/internal/models"
+	"gofit/pkg/apperrors"
 )
 
 type SessionRepository struct {
@@ -17,6 +18,20 @@ func NewSessionRepository(db *gorm.DB) *SessionRepository {
 }
 
 func (sr *SessionRepository) CreateSession(session *models.Session) error {
+	if session == nil {
+		return apperrors.ErrSessionIsNil
+	}
+
+	// Lookup existing session by token
+	var existingSession models.Session
+	result := sr.DB.Where("token = ?", session.Token).First(&existingSession)
+	if result.Error == nil {
+		// Session already exists
+		return apperrors.ErrSessionAlreadyExists
+	} else if result.Error != gorm.ErrRecordNotFound {
+		// Some other error
+		return result.Error
+	}
 	return sr.DB.Create(session).Error
 }
 

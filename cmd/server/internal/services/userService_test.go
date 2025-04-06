@@ -196,8 +196,7 @@ func TestUserService_GetUserProfile(t *testing.T) {
 	})
 
 	t.Run("non-existent user", func(t *testing.T) {
-		randomUUID, err := uuid.NewRandom()
-		is.NoErr(err)
+		randomUUID := uuid.New()
 		userProfile, err := us.GetUserProfile(randomUUID.String())
 		is.True(err == apperrors.ErrUserNotFound)
 		is.True(userProfile == nil)
@@ -236,8 +235,7 @@ func TestUserService_PermanentlyDeleteUser(t *testing.T) {
 	})
 
 	t.Run("non-existent user", func(t *testing.T) {
-		randomUUID, err := uuid.NewRandom()
-		is.NoErr(err)
+		randomUUID := uuid.New()
 		err = us.PermanentlyDeleteUser(randomUUID.String())
 		is.True(err == apperrors.ErrUserNotFound)
 	})

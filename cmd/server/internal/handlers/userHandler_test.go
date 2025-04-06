@@ -226,8 +226,7 @@ func TestUserHandler_GetUserProfile(t *testing.T) {
 		_, r := gin.CreateTestContext(w)
 
 		r.GET(validRequestPath, func(c *gin.Context) {
-			randUUID, err := uuid.NewRandom()
-			is.NoErr(err)
+			randUUID := uuid.New()
 			c.Set("userID", randUUID.String())
 			server.Handlers.User.GetUserProfile(c)
 		})
@@ -255,6 +254,7 @@ func TestUserHandler_GetUserProfile(t *testing.T) {
 		is.Equal(0, len(response))
 	})
 }
+
 func TestUserHandler_PermanentlyDeleteUser(t *testing.T) {
 	is := is.New(t)
 
@@ -305,8 +305,7 @@ func TestUserHandler_PermanentlyDeleteUser(t *testing.T) {
 		_, r := gin.CreateTestContext(w)
 
 		r.GET(validRequestPath, func(c *gin.Context) {
-			randUUID, err := uuid.NewRandom()
-			is.NoErr(err)
+			randUUID := uuid.New()
 			c.Set("userID", randUUID.String())
 			server.Handlers.User.PermanentlyDeleteUser(c)
 		})

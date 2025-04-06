@@ -125,8 +125,7 @@ func TestUserRepository_GetUserByID(t *testing.T) {
 	is.NoErr(err)
 
 	t.Run("non-existing user", func(t *testing.T) {
-		randUUID, err := uuid.NewRandom()
-		is.NoErr(err)
+		randUUID := uuid.New()
 
 		dbUser, err := ur.GetUserByID(randUUID.String())
 		is.Equal(dbUser, nil)
@@ -164,8 +163,7 @@ func TestUserRepository_PermanentlyDeleteUser(t *testing.T) {
 	is.NoErr(err)
 
 	t.Run("non-existing user", func(t *testing.T) {
-		randUUID, err := uuid.NewRandom()
-		is.NoErr(err)
+		randUUID := uuid.New()
 		rowsAffected, err := ur.PermanentlyDeleteUser(randUUID.String())
 		is.Equal(rowsAffected, int64(0))
 		is.NoErr(err)

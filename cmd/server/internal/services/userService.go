@@ -74,12 +74,8 @@ func (us *UserService) LoginUser(email, password string) (string, error) {
 		return "", apperrors.ErrTokenGeneration
 	}
 
-	// Create a session
-	session := &models.Session{
-		UserID:    user.ID,
-		Token:     tokenString,
-		ExpiresAt: time.Now().Add(time.Duration(config.TokenExpiration) * time.Second),
-	}
+	expiresAt := time.Now().Add(time.Duration(config.TokenExpiration) * time.Second)
+	session, err := models.NewSession(user.ID, tokenString, expiresAt)
 
 	if err := us.SessionRepo.CreateSession(session); err != nil {
 		return "", err
