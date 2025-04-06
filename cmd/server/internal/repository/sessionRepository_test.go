@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/matryer/is"
+	"gorm.io/gorm"
 
 	"gofit/internal/models"
 	"gofit/internal/repository"
@@ -69,5 +70,24 @@ func TestSessionRepository_GetSessionByToken(t *testing.T) {
 		session, err := sr.GetSessionByToken("")
 		is.Equal(session, nil)
 		is.Equal(err, apperrors.ErrTokenIsEmpty)
+	})
+
+	t.Run("fails on non-existing token", func(t *testing.T) {
+		session, err := sr.GetSessionByToken(uuid.New().String())
+		is.Equal(session, nil)
+		is.Equal(err, gorm.ErrRecordNotFound)
+	})
+
+	t.Run("retrieves session by token", func(t *testing.T) {
+		session, err := models.NewSession(uuid.New(), uuid.New().String(), time.Now().Add(1*time.Hour))
+		is.NoErr(err)
+
+		err = sr.CreateSession(session)
+		is.NoErr(err)
+
+		retrievedSession, err := sr.GetSessionByToken(session.Token)
+		is.NoErr(err)
+		is.Equal(retrievedSession.UserID, session.UserID)
+		is.Equal(retrievedSession.Token, session.Token)
 	})
 }
