@@ -56,3 +56,18 @@ func TestSessionRepository_CreateSession(t *testing.T) {
 		is.Equal(err, apperrors.ErrSessionIsNil)
 	})
 }
+
+func TestSessionRepository_GetSessionByToken(t *testing.T) {
+	testDB := testutils.TestDBSetup()
+	is := is.New(t)
+	tx := testDB.Begin()
+	defer tx.Rollback()
+
+	sr := repository.NewSessionRepository(tx)
+
+	t.Run("fails on empty token", func(t *testing.T) {
+		session, err := sr.GetSessionByToken("")
+		is.Equal(session, nil)
+		is.Equal(err, apperrors.ErrTokenIsEmpty)
+	})
+}

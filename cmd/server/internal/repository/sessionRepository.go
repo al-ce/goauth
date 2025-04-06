@@ -36,6 +36,10 @@ func (sr *SessionRepository) CreateSession(session *models.Session) error {
 }
 
 func (sr *SessionRepository) GetSessionByToken(token string) (*models.Session, error) {
+	if token == "" {
+		return nil, apperrors.ErrTokenIsEmpty
+	}
+
 	var session models.Session
 	result := sr.DB.Where("token = ? AND expires_at > ?", token, time.Now()).First(&session)
 	if result.Error != nil {
