@@ -21,7 +21,6 @@ func (sr *SessionRepository) CreateSession(session *models.Session) error {
 	if session == nil {
 		return apperrors.ErrSessionIsNil
 	}
-
 	// Lookup existing session by token
 	var existingSession models.Session
 	result := sr.DB.Where("token = ?", session.Token).First(&existingSession)
@@ -39,7 +38,6 @@ func (sr *SessionRepository) GetSessionByToken(token string) (*models.Session, e
 	if token == "" {
 		return nil, apperrors.ErrTokenIsEmpty
 	}
-
 	var session models.Session
 	result := sr.DB.Where("token = ? AND expires_at > ?", token, time.Now()).First(&session)
 	if result.Error != nil {
@@ -49,11 +47,23 @@ func (sr *SessionRepository) GetSessionByToken(token string) (*models.Session, e
 }
 
 func (sr *SessionRepository) DeleteSessionByToken(token string) error {
+	if token == "" {
+		return apperrors.ErrTokenIsEmpty
+	}
 	result := sr.DB.Where("token = ?", token).Delete(&models.Session{})
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
 	return result.Error
 }
 
 func (sr *SessionRepository) DeleteSessionByUserID(userID string) error {
+	if userID == "" {
+		return apperrors.ErrUserIdEmpty
+	}
 	result := sr.DB.Where("user_id = ?", userID).Delete(&models.Session{})
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
 	return result.Error
 }

@@ -91,3 +91,83 @@ func TestSessionRepository_GetSessionByToken(t *testing.T) {
 		is.Equal(retrievedSession.Token, session.Token)
 	})
 }
+
+func TestSessionRepository_DeleteSessionByToken(t *testing.T) {
+	testDB := testutils.TestDBSetup()
+	is := is.New(t)
+	tx := testDB.Begin()
+	defer tx.Rollback()
+
+	sr := repository.NewSessionRepository(tx)
+
+	t.Run("deletes session by token", func(t *testing.T) {
+		session, err := models.NewSession(uuid.New(), uuid.New().String(), time.Now().Add(1*time.Hour))
+		is.NoErr(err)
+
+		err = sr.CreateSession(session)
+		is.NoErr(err)
+
+		err = sr.DeleteSessionByToken(session.Token)
+		is.NoErr(err)
+
+		retrievedSession, err := sr.GetSessionByToken(session.Token)
+		is.Equal(retrievedSession, nil)
+		is.Equal(err, gorm.ErrRecordNotFound)
+	})
+
+	t.Run("fails on non-existing token", func(t *testing.T) {
+		err := sr.DeleteSessionByToken(uuid.New().String())
+		is.Equal(err, gorm.ErrRecordNotFound)
+	})
+
+	t.Run("fails on empty token", func(t *testing.T) {
+		err := sr.DeleteSessionByToken("")
+		is.Equal(err, apperrors.ErrTokenIsEmpty)
+	})
+}
+
+func TestSessionRepository_DeleteSessionByUserID(t *testing.T) {
+	testDB := testutils.TestDBSetup()
+	is := is.New(t)
+	tx := testDB.Begin()
+	defer tx.Rollback()
+
+	sr := repository.NewSessionRepository(tx)
+
+	t.Run("deletes session by user ID", func(t *testing.T) {
+		sessionOne, err := models.NewSession(uuid.New(), uuid.New().String(), time.Now().Add(1*time.Hour))
+		is.NoErr(err)
+
+		err = sr.CreateSession(sessionOne)
+		is.NoErr(err)
+		sessionTwo, err := models.NewSession(uuid.New(), uuid.New().String(), time.Now().Add(1*time.Hour))
+		is.NoErr(err)
+
+		err = sr.CreateSession(sessionTwo)
+		is.NoErr(err)
+
+		err = sr.DeleteSessionByUserID(sessionOne.UserID.String())
+		is.NoErr(err)
+
+		for _, session := range []*models.Session{sessionOne, sessionTwo} {
+			retrievedSession, err := sr.GetSessionByToken(session.Token)
+			if session.UserID == sessionOne.UserID {
+				is.Equal(retrievedSession, nil)
+				is.Equal(err, gorm.ErrRecordNotFound)
+			} else {
+				is.NoErr(err)
+				is.Equal(retrievedSession.UserID, sessionTwo.UserID)
+			}
+		}
+	})
+
+	t.Run("fails on non-existing user ID", func(t *testing.T) {
+		err := sr.DeleteSessionByUserID(uuid.New().String())
+		is.Equal(err, gorm.ErrRecordNotFound)
+	})
+
+	t.Run("fails on empty user ID", func(t *testing.T) {
+		err := sr.DeleteSessionByUserID("")
+		is.Equal(err, apperrors.ErrUserIdEmpty)
+	})
+}
