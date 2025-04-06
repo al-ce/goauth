@@ -90,6 +90,17 @@ func (us *UserService) LoginUser(email, password string) (string, error) {
 	return tokenString, nil
 }
 
+func (us *UserService) Logout(token string) error {
+	return us.SessionRepo.DeleteSessionByToken(token)
+}
+
+func (us *UserService) LogoutEverywhere(userID string) error {
+	if userID == "" {
+		return apperrors.ErrUserIdEmpty
+	}
+	return us.SessionRepo.DeleteSessionByUserID(userID)
+}
+
 func (us *UserService) GetUserProfile(userID string) (*models.UserProfile, error) {
 	if userID == "" {
 		return nil, apperrors.ErrUserIdEmpty

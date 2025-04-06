@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog/log"
 
 	"gofit/internal/services"
 	"gofit/pkg/apperrors"
@@ -60,6 +61,45 @@ func (uh *UserHandler) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "login success",
 	})
+}
+
+func (uh *UserHandler) Logout(c *gin.Context) {
+	tokenString, err := c.Cookie(config.JwtCookieName)
+	if err != nil {
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	if err := uh.UserService.Logout(tokenString); err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.SetCookie(config.JwtCookieName, "", -1, "", "", true, true)
+	c.JSON(http.StatusOK, gin.H{"message": "logged out successfully"})
+}
+
+func (uh *UserHandler) LogoutEverywhere(c *gin.Context) {
+	userIDStr, exists := c.Get("userID")
+	if !exists {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{})
+		return
+	}
+	userID := userIDStr.(string)
+
+	log.Info().
+		Str("userID", userID).
+		Str("clientIP", c.ClientIP()).
+		Str("action", "logout_everywhere").
+		Msg("User logged out from all devices")
+
+	if err := uh.UserService.LogoutEverywhere(userID); err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.SetCookie(config.JwtCookieName, "", -1, "", "", true, true)
+	c.JSON(http.StatusOK, gin.H{"message": "logged out everywhere"})
 }
 
 func (uh *UserHandler) GetUserProfile(c *gin.Context) {

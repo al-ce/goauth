@@ -38,10 +38,12 @@ func (s *APIServer) SetupRoutes() {
 	r.GET("/ping", func(c *gin.Context) { c.String(http.StatusOK, "pong") })
 	r.POST("/register", s.Handlers.User.RegisterUser)
 	r.POST("/login", s.Handlers.User.Login)
+	r.POST("/logout", s.Handlers.User.Logout)
 
 	protected := r.Group("")
 	protected.Use(s.Middlewares.Auth.RequireAuth())
 	{
+		protected.POST("/logouteverywhere", s.Handlers.User.LogoutEverywhere)
 		protected.GET("/profile", s.Handlers.User.GetUserProfile)
 		protected.GET("/deleteaccount", s.Handlers.User.PermanentlyDeleteUser)
 		protected.POST("/updateuser", s.Handlers.User.UpdateUser)

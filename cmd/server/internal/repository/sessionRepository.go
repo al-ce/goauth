@@ -43,3 +43,13 @@ func (sr *SessionRepository) GetSessionByToken(token string) (*models.Session, e
 	}
 	return &session, nil
 }
+
+func (sr *SessionRepository) DeleteSessionByToken(token string) error {
+	result := sr.DB.Where("token = ?", token).Delete(&models.Session{})
+	return result.Error
+}
+
+func (sr *SessionRepository) DeleteSessionByUserID(userID string) error {
+	result := sr.DB.Where("user_id = ?", userID).Delete(&models.Session{})
+	return result.Error
+}

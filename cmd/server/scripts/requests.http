@@ -51,3 +51,20 @@ Content-Type: application/json
     "email": "crashTestDummy22@test.com",
     "password": "thermostatdonationbarndiamond22"
 }
+
+###
+
+# @name logout
+POST http://localhost:3000/logout
+Cookie: {{login.response.headers.Set-Cookie}}
+Accept: application/json
+
+###
+
+# @name logouteverywhere
+# @name logout
+POST http://localhost:3000/logouteverywhere
+Cookie: {{login.response.headers.Set-Cookie}}
+Accept: application/json
+###
+
