@@ -43,7 +43,9 @@ func (us *UserService) RegisterUser(email, password string) error {
 	return us.UserRepo.RegisterUser(user)
 }
 
+// LoginUser authenticates a user, generates a JWT token, and creates a session
 func (us *UserService) LoginUser(email, password string) (string, error) {
+	// Check for empty fields
 	var err error
 	if email == "" {
 		err := apperrors.ErrEmailIsEmpty
@@ -54,16 +56,19 @@ func (us *UserService) LoginUser(email, password string) (string, error) {
 		return "", err
 	}
 
+	// Check if user exists
 	user, err := us.UserRepo.LookupUser(email)
 	if err != nil {
 		return "", err
 	}
 
+	// Check if password is correct
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
 		return "", apperrors.ErrInvalidLogin
 	}
 
+	// Generate JWT token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": user.ID.String(),
 		"exp": time.Now().Add(time.Hour * 24 * 7).Unix(),
@@ -74,6 +79,7 @@ func (us *UserService) LoginUser(email, password string) (string, error) {
 		return "", apperrors.ErrTokenGeneration
 	}
 
+	// Create session with expiration time
 	expiresAt := time.Now().Add(time.Duration(config.TokenExpiration) * time.Second)
 	session, err := models.NewSession(user.ID, tokenString, expiresAt)
 
