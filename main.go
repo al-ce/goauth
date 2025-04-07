@@ -6,9 +6,9 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog/log"
 
-	"gofit/internal/database"
-	"gofit/internal/server"
-	"gofit/pkg/logger"
+	"goauth/internal/database"
+	"goauth/internal/server"
+	"goauth/pkg/logger"
 )
 
 func main() {

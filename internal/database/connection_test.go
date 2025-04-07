@@ -5,7 +5,7 @@ import (
 
 	"github.com/matryer/is"
 
-	"gofit/internal/testutils"
+	"goauth/internal/testutils"
 )
 
 func TestConnectToDB(t *testing.T) {

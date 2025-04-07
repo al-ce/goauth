@@ -1,10 +1,10 @@
-PROJECT := "gofit"
-DEV_DB := "gofit"
-DEV_USER := "gofit"
-DEV_PASS := "gofit"
-TEST_DB := "gofit_test"
-TEST_USER := "gofit_test"
-TEST_PASS := "gofit_test"
+PROJECT := "goauth"
+DEV_DB := "goauth"
+DEV_USER := "goauth"
+DEV_PASS := "goauth"
+TEST_DB := "goauth_test"
+TEST_USER := "goauth_test"
+TEST_PASS := "goauth_test"
 HOST := "localhost"
 PORT := "5432"
 DRIVER := "postgres"
@@ -17,8 +17,8 @@ default:
 # watch for changes and run the server
 watch:
     CompileDaemon \
-    --build="go build -o gofit ./main.go" \
-    --command="./gofit"
+    --build="go build -o goauth ./main.go" \
+    --command="./goauth"
 
 # go test {{path}} and format the output
 test path="":

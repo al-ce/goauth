@@ -8,10 +8,10 @@ import (
 	"github.com/matryer/is"
 	"gorm.io/gorm"
 
-	"gofit/internal/models"
-	"gofit/internal/repository"
-	"gofit/internal/testutils"
-	"gofit/pkg/apperrors"
+	"goauth/internal/models"
+	"goauth/internal/repository"
+	"goauth/internal/testutils"
+	"goauth/pkg/apperrors"
 )
 
 func TestSessionRepository_CreateSession(t *testing.T) {

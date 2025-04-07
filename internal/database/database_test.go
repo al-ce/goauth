@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"gofit/internal/testutils"
+	"goauth/internal/testutils"
 )
 
 func TestMain(m *testing.M) {

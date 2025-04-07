@@ -62,7 +62,6 @@ Accept: application/json
 ###
 
 # @name logouteverywhere
-# @name logout
 POST http://localhost:3000/logouteverywhere
 Cookie: {{login.response.headers.Set-Cookie}}
 Accept: application/json

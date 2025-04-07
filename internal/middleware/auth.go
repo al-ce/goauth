@@ -10,9 +10,9 @@ import (
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 
-	"gofit/internal/repository"
-	"gofit/internal/services"
-	"gofit/pkg/config"
+	"goauth/internal/repository"
+	"goauth/internal/services"
+	"goauth/pkg/config"
 )
 
 type AuthMiddleware struct {

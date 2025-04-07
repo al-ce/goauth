@@ -10,12 +10,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/matryer/is"
 
-	"gofit/internal/models"
-	"gofit/internal/repository"
-	"gofit/internal/services"
-	"gofit/internal/testutils"
-	"gofit/pkg/apperrors"
-	"gofit/pkg/config"
+	"goauth/internal/models"
+	"goauth/internal/repository"
+	"goauth/internal/services"
+	"goauth/internal/testutils"
+	"goauth/pkg/apperrors"
+	"goauth/pkg/config"
 )
 
 func TestUserService_RegisterUser(t *testing.T) {

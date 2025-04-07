@@ -7,8 +7,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/matryer/is"
 
-	"gofit/internal/models"
-	"gofit/pkg/apperrors"
+	"goauth/internal/models"
+	"goauth/pkg/apperrors"
 )
 
 func TestSessionModel_NewSession(t *testing.T) {

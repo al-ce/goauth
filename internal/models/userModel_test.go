@@ -5,7 +5,7 @@ import (
 
 	"github.com/matryer/is"
 
-	"gofit/pkg/config"
+	"goauth/pkg/config"
 )
 
 func TestNewUser(t *testing.T) {

@@ -8,7 +8,7 @@ import (
 	passwordvalidator "github.com/wagslane/go-password-validator"
 	"golang.org/x/crypto/bcrypt"
 
-	"gofit/pkg/apperrors"
+	"goauth/pkg/apperrors"
 )
 
 type User struct {

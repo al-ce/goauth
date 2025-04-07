@@ -8,8 +8,8 @@ import (
 
 	"github.com/matryer/is"
 
-	"gofit/internal/server"
-	"gofit/internal/testutils"
+	"goauth/internal/server"
+	"goauth/internal/testutils"
 )
 
 func TestMain(m *testing.M) {

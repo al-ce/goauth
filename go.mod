@@ -1,4 +1,4 @@
-module gofit
+module goauth
 
 go 1.24.1
 

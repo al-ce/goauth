@@ -7,7 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"gofit/internal/testutils"
+	"goauth/internal/testutils"
 )
 
 type UserCredentialsRequest struct {

@@ -6,10 +6,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/matryer/is"
 
-	"gofit/internal/models"
-	"gofit/internal/repository"
-	"gofit/internal/testutils"
-	"gofit/pkg/apperrors"
+	"goauth/internal/models"
+	"goauth/internal/repository"
+	"goauth/internal/testutils"
+	"goauth/pkg/apperrors"
 )
 
 func TestUserRepository_RegisterUser(t *testing.T) {

@@ -5,8 +5,8 @@ import (
 
 	"gorm.io/gorm"
 
-	"gofit/internal/models"
-	"gofit/pkg/apperrors"
+	"goauth/internal/models"
+	"goauth/pkg/apperrors"
 )
 
 type SessionRepository struct {

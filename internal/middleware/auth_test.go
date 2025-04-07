@@ -12,11 +12,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/matryer/is"
 
-	"gofit/internal/middleware"
-	"gofit/internal/models"
-	"gofit/internal/repository"
-	"gofit/internal/testutils"
-	"gofit/pkg/config"
+	"goauth/internal/middleware"
+	"goauth/internal/models"
+	"goauth/internal/repository"
+	"goauth/internal/testutils"
+	"goauth/pkg/config"
 )
 
 func TestMiddlewareAuth_RequireAuth(t *testing.T) {

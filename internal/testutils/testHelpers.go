@@ -16,13 +16,13 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
-	"gofit/internal/database"
-	"gofit/internal/models"
+	"goauth/internal/database"
+	"goauth/internal/models"
 )
 
 func TestEnvSetup() {
 	os.Setenv("PORT", "3001")
-	os.Setenv("DB", "host=localhost user=gofit_test password=gofit_test dbname=gofit_test port=5432 sslmode=disable TimeZone=UTC")
+	os.Setenv("DB", "host=localhost user=goauth_test password=goauth_test dbname=goauth_test port=5432 sslmode=disable TimeZone=UTC")
 
 	gin.SetMode(gin.TestMode)
 	gin.DefaultWriter = io.Discard
