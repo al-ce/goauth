@@ -11,6 +11,7 @@ import (
 	"gorm.io/gorm"
 
 	"gofit/internal/repository"
+	"gofit/internal/services"
 	"gofit/pkg/config"
 )
 
@@ -21,11 +22,14 @@ type AuthMiddleware struct {
 
 func NewAuthMiddleware(db *gorm.DB) *AuthMiddleware {
 	return &AuthMiddleware{
-		UserRepo: repository.NewUserRepository(db),
+		UserRepo:    repository.NewUserRepository(db),
 		SessionRepo: repository.NewSessionRepository(db),
 	}
 }
 
+// RequireAuth is a middleware used to authorize users with JWT tokens from
+// the cookie, checking if the session in the database matching the token is
+// valid and not expired. The session is rotated if it is halfway expired.
 func (am *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Get cookie from request
@@ -47,6 +51,7 @@ func (am *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 			return
 		}
 
+		// Get claims
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok {
 			log.Debug().Msg("Invalid token claims")
@@ -54,12 +59,14 @@ func (am *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 			return
 		}
 
+		// Check if token is expired
 		if float64(time.Now().Unix()) > claims["exp"].(float64) {
 			log.Debug().Msg("Token expired")
 			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 
+		// Get session from database
 		session, err := am.SessionRepo.GetSessionByToken(tokenString)
 		if err != nil {
 			log.Debug().Err(err).Msg("Session not found")
@@ -68,6 +75,21 @@ func (am *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 		}
 
 		c.Set("userID", session.UserID.String())
+
+		// Rotate session if halfway expired
+		halfway := session.CreatedAt.Add(session.ExpiresAt.Sub(session.CreatedAt) / 2)
+		if time.Now().After(halfway) {
+			userService := services.NewUserService(am.UserRepo, am.SessionRepo)
+			newToken, err := userService.RotateSession(tokenString)
+			if err != nil {
+				log.Debug().Err(err).Msg("Failed to rotate session")
+				c.AbortWithStatus(http.StatusUnauthorized)
+				return
+			} else {
+				c.SetSameSite(http.SameSiteStrictMode)
+				c.SetCookie(config.JwtCookieName, newToken, int(config.TokenExpiration), "", "", true, true)
+			}
+		}
 
 		c.Next()
 	}
