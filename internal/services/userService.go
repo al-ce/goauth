@@ -116,6 +116,10 @@ func (us *UserService) GetUserProfile(userID string) (*models.UserProfile, error
 	if err != nil {
 		return nil, err
 	}
+
+	// Why not just return a User object with every other field set to nil?
+	// The User object contains sensitive information like password hash.
+	// Rather than trust ourselves to never expose that, we create a new struct
 	userProfile := &models.UserProfile{
 		Email:     user.Email,
 		LastLogin: user.LastLogin,
