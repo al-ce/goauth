@@ -52,7 +52,13 @@ func (uh *UserHandler) Login(c *gin.Context) {
 
 	tokenString, err := uh.UserService.LoginUser(body.Email, body.Password)
 	if err != nil {
+
+		// TODO: if account locked...
+
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": apperrors.ErrInvalidLogin})
+
+		// TODO: increase failed login count
+
 		return
 	}
 
