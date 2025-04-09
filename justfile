@@ -73,6 +73,15 @@ rain env="":
           --password="{{DEV_PASS}}"
     fi
 
+# Connect to database with psql
+pg env="":
+    #!/usr/bin/env sh
+    if [ "{{env}}" = "test" ]; then
+        psql -h {{HOST}} -p {{PORT}} -U {{TEST_USER}} {{TEST_DB}}
+    else
+        psql -h {{HOST}} -p {{PORT}} -U {{DEV_USER}} {{DEV_DB}}
+    fi
+
 # send GET request to ping endpoint
 ping:
     curl -X 'GET' -v -s -A '{{PROJECT}} justfile' 'http://localhost:3000/ping'
