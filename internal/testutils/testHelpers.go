@@ -71,10 +71,9 @@ func MakeRequest(router *gin.Engine, method, path string, body any) (*httptest.R
 	return rr, nil
 }
 
-// RegisterUser is a helper to register a user with a valid email and password
-// for userHandler methods. For userRepository testing, ur.RegisterUser()
-// suffices.
-func RegisterUser(db *gorm.DB, user *models.User) error {
+// UserHandler_RegisterUser is a helper to register a user with a valid email and password
+// for userHandler methods. For userRepository testing, ur.RegisterUser() suffices.
+func UserHandler_RegisterUser(db *gorm.DB, user *models.User) error {
 	_, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return err

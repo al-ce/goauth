@@ -92,10 +92,10 @@ func TestUserHandler_Login(t *testing.T) {
 		Password: password2,
 	}
 
-	err := testutils.RegisterUser(tx, user1)
+	err := testutils.UserHandler_RegisterUser(tx, user1)
 	is.NoErr(err)
 
-	err = testutils.RegisterUser(tx, user2)
+	err = testutils.UserHandler_RegisterUser(tx, user2)
 	is.NoErr(err)
 
 	// Test cases
@@ -190,7 +190,7 @@ func TestUserHandler_GetUserProfile(t *testing.T) {
 		Password: password,
 	}
 
-	err := testutils.RegisterUser(tx, user)
+	err := testutils.UserHandler_RegisterUser(tx, user)
 	is.NoErr(err)
 
 	// Read registered user from DB so we can get its ID
@@ -273,7 +273,7 @@ func TestUserHandler_PermanentlyDeleteUser(t *testing.T) {
 		Password: password,
 	}
 
-	err := testutils.RegisterUser(tx, user)
+	err := testutils.UserHandler_RegisterUser(tx, user)
 	is.NoErr(err)
 
 	// Read registered user from DB so we can get its ID
