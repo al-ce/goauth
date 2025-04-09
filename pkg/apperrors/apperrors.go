@@ -7,6 +7,7 @@ import (
 var New = errors.New
 
 var (
+	ErrAccountIsLocked               = New("Account is locked")
 	ErrCouldNotIncrementFailedLogins = New("Could not increment users.failed_login_attempts")
 	ErrCouldNotUpdateUser            = New("Tried to update user but no changes were made")
 	ErrDuplicateEmail                = New("Duplicate email")

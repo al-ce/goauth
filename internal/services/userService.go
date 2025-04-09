@@ -63,6 +63,11 @@ func (us *UserService) LoginUser(email, password string) (string, error) {
 		return "", err
 	}
 
+	// Deny login if account is locked
+	if user.AccountLocked {
+		return "", apperrors.ErrAccountIsLocked
+	}
+
 	// Check if password is correct
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {

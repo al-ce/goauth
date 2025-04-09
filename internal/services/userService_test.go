@@ -126,7 +126,6 @@ func TestUserService_LoginUser(t *testing.T) {
 	})
 
 	t.Run("expected token claims", func(t *testing.T) {
-		// Use its own transaction for this test
 		tx := testDB.Begin()
 		defer tx.Rollback()
 
@@ -134,7 +133,6 @@ func TestUserService_LoginUser(t *testing.T) {
 		sessionRepo := repository.NewSessionRepository(tx)
 		us := services.NewUserService(userRepo, sessionRepo)
 
-		// Create a test user specifically for this test
 		testEmail := "tokenClaimsTest@example.com"
 		err := us.RegisterUser(testEmail, password)
 		is.NoErr(err)
@@ -166,6 +164,31 @@ func TestUserService_LoginUser(t *testing.T) {
 		session, err := sessionRepo.GetSessionByToken(token)
 		is.NoErr(err)
 		is.Equal(session.UserID.String(), user.ID.String())
+	})
+
+	t.Run("deny locked account login", func(t *testing.T) {
+		tx := testDB.Begin()
+		defer tx.Rollback()
+
+		userRepo := repository.NewUserRepository(tx)
+		sessionRepo := repository.NewSessionRepository(tx)
+		us := services.NewUserService(userRepo, sessionRepo)
+
+		// Register user
+		testEmail := "lockedUserLogin@example.com"
+		err := us.RegisterUser(testEmail, password)
+		is.NoErr(err)
+
+		// Get registered user
+		user, err := userRepo.LookupUser(testEmail)
+		is.NoErr(err)
+
+		// Lock account
+		us.UserRepo.LockAccount(user.ID.String())
+
+		// Attempt locked-account login
+		_, err = us.LoginUser(testEmail, password)
+		is.Equal(err, apperrors.ErrAccountIsLocked)
 	})
 }
 
