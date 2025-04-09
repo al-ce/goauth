@@ -3,12 +3,14 @@ package repository
 import (
 	"errors"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
 	"goauth/internal/models"
 	"goauth/pkg/apperrors"
+	"goauth/pkg/config"
 )
 
 type UserRepository struct {
@@ -88,7 +90,46 @@ func (r *UserRepository) UpdateUser(userID string, request map[string]any) error
 	}
 
 	if result.RowsAffected == 0 {
-		return apperrors.ErrNoChangesMade
+		return apperrors.ErrCouldNotUpdateUser
+	}
+
+	return nil
+}
+
+// IncrementFailedLogins increments failed login attempts and locks account every
+// `config.MaxLoginAttempts` failed attempts.
+func (r *UserRepository) IncrementFailedLogins(userID string) error {
+	user, err := r.GetUserByID(userID)
+	if err != nil {
+		return apperrors.ErrUserNotFound
+	}
+
+	result := r.DB.Model(&models.User{}).Where("id = ?", user.ID).
+		Updates(map[string]any{"failed_login_attempts": user.FailedLoginAttempts + 1})
+
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return apperrors.ErrCouldNotIncrementFailedLogins
+	}
+
+	return nil
+}
+
+// LockAccount locks a user account until the time spec'd in `config`
+func (r *UserRepository) LockAccount(userID string) error {
+	result := r.DB.Model(&models.User{}).Where("id = ?", userID).
+		Updates(map[string]any{
+			"account_locked":       true,
+			"account_locked_until": time.Now().Add(config.AccountLockoutLength * time.Minute),
+		})
+
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return apperrors.ErrUserNotFound
 	}
 
 	return nil

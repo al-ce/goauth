@@ -175,3 +175,76 @@ func TestUserRepository_PermanentlyDeleteUser(t *testing.T) {
 		is.NoErr(err)
 	})
 }
+
+func TestUserRepository_IncrementFailedLogins(t *testing.T) {
+	testDB := testutils.TestDBSetup()
+
+	email := "testHandleFailedLogin@test.com"
+	password := "password"
+	user := &models.User{
+		Email:    email,
+		Password: password,
+	}
+
+	t.Run("fails on non-existent user", func(t *testing.T) {
+		is := is.New(t)
+		tx := testDB.Begin()
+		defer tx.Rollback()
+		ur := repository.NewUserRepository(tx)
+		err := ur.RegisterUser(user)
+		is.NoErr(err)
+
+		err = ur.IncrementFailedLogins(uuid.New().String())
+		is.Equal(err, apperrors.ErrUserNotFound)
+	})
+
+	t.Run("increments FailedLoginAttempts", func(t *testing.T) {
+		is := is.New(t)
+		tx := testDB.Begin()
+		defer tx.Rollback()
+		ur := repository.NewUserRepository(tx)
+		err := ur.RegisterUser(user)
+		is.NoErr(err)
+
+		err = ur.IncrementFailedLogins(user.ID.String())
+		is.NoErr(err)
+		user, err = ur.LookupUser(user.Email)
+		is.NoErr(err)
+		is.Equal(user.FailedLoginAttempts, 1)
+	})
+}
+
+func TestUserRepository_LockAccount(t *testing.T) {
+	testDB := testutils.TestDBSetup()
+
+	email := "testLockAccount@test.com"
+	password := "password"
+	user := &models.User{
+		Email:    email,
+		Password: password,
+	}
+
+	t.Run("locks on existing user", func(t *testing.T) {
+		is := is.New(t)
+		tx := testDB.Begin()
+		defer tx.Rollback()
+		ur := repository.NewUserRepository(tx)
+		err := ur.RegisterUser(user)
+		is.NoErr(err)
+
+		err = ur.LockAccount(user.ID.String())
+		user, err = ur.LookupUser(user.Email)
+		is.NoErr(err)
+		is.True(user.AccountLocked)
+	})
+
+	t.Run("fails on non-existent user", func(t *testing.T) {
+		is := is.New(t)
+		tx := testDB.Begin()
+		defer tx.Rollback()
+		ur := repository.NewUserRepository(tx)
+
+		err := ur.LockAccount(uuid.New().String())
+		is.Equal(err, apperrors.ErrUserNotFound)
+	})
+}
