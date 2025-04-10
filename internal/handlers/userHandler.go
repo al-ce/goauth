@@ -40,33 +40,37 @@ func (uh *UserHandler) RegisterUser(c *gin.Context) {
 }
 
 func (uh *UserHandler) Login(c *gin.Context) {
-	var body struct {
-		Email    string `json:"email" binding:"required"`
-		Password string `json:"password" binding:"required"`
-	}
+    var body struct {
+        Email    string `json:"email" binding:"required"`
+        Password string `json:"password" binding:"required"`
+    }
 
-	if err := c.ShouldBindJSON(&body); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+	// Expect both email and password
+    if err := c.ShouldBindJSON(&body); err != nil {
+        c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
 
-	tokenString, err := uh.UserService.LoginUser(body.Email, body.Password)
-	if err != nil {
+    // Get client IP for logging
+    clientIP := c.ClientIP()
 
-		// TODO: if account locked...
+    tokenString, err := uh.UserService.LoginUser(body.Email, body.Password)
+    if err != nil {
+        log.Info().
+            Str("email", body.Email).
+            Str("clientIP", clientIP).
+            Str("error", err.Error()).
+            Msg("Login failed")
 
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": apperrors.ErrInvalidLogin})
+        c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": apperrors.ErrInvalidLogin})
+        return
+    }
 
-		// TODO: increase failed login count
-
-		return
-	}
-
-	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie(config.JwtCookieName, tokenString, config.TokenExpiration, "", "", true, true)
-	c.JSON(http.StatusOK, gin.H{
-		"message": "login success",
-	})
+    c.SetSameSite(http.SameSiteLaxMode)
+    c.SetCookie(config.JwtCookieName, tokenString, config.TokenExpiration, "", "", true, true)
+    c.JSON(http.StatusOK, gin.H{
+        "message": "login success",
+    })
 }
 
 func (uh *UserHandler) Logout(c *gin.Context) {

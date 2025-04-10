@@ -218,7 +218,7 @@ func TestUserService_LoginUser(t *testing.T) {
 
 		// Attempt subsequent login, expecting locked account
 		_, err = us.LoginUser(testEmail, password)
-		is.Equal(err, apperrors.ErrInvalidLogin)
+		is.Equal(err, apperrors.ErrAccountIsLocked)
 
 	})
 }
