@@ -11,6 +11,7 @@ import (
 type Session struct {
 	ID        uuid.UUID `gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
 	UserID    uuid.UUID `gorm:"type:uuid;not null;index"`
+	User      *User     `gorm:"foreignKey:UserID;references:ID;constraint:OnDelete:CASCADE;"`
 	Token     string    `gorm:"type:text;not null;unique"`
 	ExpiresAt time.Time `gorm:"type:timestamp;not null"`
 	CreatedAt time.Time `gorm:"type:timestamp;not null;default:now()"`

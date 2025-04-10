@@ -7,13 +7,16 @@ import (
 	"goauth/internal/models"
 )
 
-func Migrate(db *gorm.DB) error {
+func Migrate(db *gorm.DB) {
 	if err := db.Exec(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`).Error; err != nil {
 		log.Fatal().Err(err).Msg("Error migrating database")
 	}
 
-	return db.AutoMigrate(
-		&models.User{},
-		&models.Session{},
-	)
+	if err := db.AutoMigrate(&models.User{}); err != nil {
+		log.Fatal().Err(err).Msg("Error migrating User model")
+	}
+
+	if err := db.AutoMigrate(&models.Session{}); err != nil {
+		log.Fatal().Err(err).Msg("Error migrating Session model")
+	}
 }

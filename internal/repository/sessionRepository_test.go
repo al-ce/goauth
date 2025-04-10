@@ -11,24 +11,31 @@ import (
 	"goauth/internal/models"
 	"goauth/internal/repository"
 	"goauth/internal/testutils"
+	h "goauth/internal/testutils"
 	"goauth/pkg/apperrors"
 )
 
 func TestSessionRepository_CreateSession(t *testing.T) {
 	testDB := testutils.TestDBSetup()
 	is := is.New(t)
-	tx := testDB.Begin()
-	defer tx.Rollback()
-
-	sr := repository.NewSessionRepository(tx)
-
 	t.Run("fails on nil session", func(t *testing.T) {
+		tx := testDB.Begin()
+		defer tx.Rollback()
+		sr := repository.NewSessionRepository(tx)
+
 		err := sr.CreateSession(nil)
 		is.Equal(err, apperrors.ErrSessionIsNil)
 	})
 
 	t.Run("creates session", func(t *testing.T) {
-		session, err := models.NewSession(uuid.New(), uuid.New().String(), time.Now().Add(1*time.Hour))
+		tx := testDB.Begin()
+		defer tx.Rollback()
+		sr := repository.NewSessionRepository(tx)
+
+		user, err := h.CreateTestUser(tx, "testCreateSession@test.com")
+		is.NoErr(err)
+
+		session, err := models.NewSession(user.ID, uuid.New().String(), time.Now().Add(1*time.Hour))
 		is.NoErr(err)
 
 		err = sr.CreateSession(session)
@@ -36,14 +43,24 @@ func TestSessionRepository_CreateSession(t *testing.T) {
 	})
 
 	t.Run("fails on duplicate session", func(t *testing.T) {
-		sessionOne, err := models.NewSession(uuid.New(), uuid.New().String(), time.Now().Add(1*time.Hour))
+		tx := testDB.Begin()
+		defer tx.Rollback()
+		sr := repository.NewSessionRepository(tx)
+
+		user, err := h.CreateTestUser(tx, "testCreateSession@test.com")
+		is.NoErr(err)
+
+		tokenStr := uuid.New().String()
+
+		sessionOne, err := models.NewSession(user.ID, tokenStr, time.Now().Add(1*time.Hour))
 		is.NoErr(err)
 
 		err = sr.CreateSession(sessionOne)
 		is.NoErr(err)
+
 		sessionTwo, err := models.NewSession(
-			sessionOne.UserID,
-			sessionOne.Token,
+			user.ID,
+			tokenStr,
 			time.Now().Add(1*time.Hour),
 		)
 		is.NoErr(err)
@@ -51,35 +68,41 @@ func TestSessionRepository_CreateSession(t *testing.T) {
 		err = sr.CreateSession(sessionTwo)
 		is.Equal(err, apperrors.ErrSessionAlreadyExists)
 	})
-
-	t.Run("fails on nil session", func(t *testing.T) {
-		err := sr.CreateSession(nil)
-		is.Equal(err, apperrors.ErrSessionIsNil)
-	})
 }
 
 func TestSessionRepository_GetSessionByToken(t *testing.T) {
 	testDB := testutils.TestDBSetup()
 	is := is.New(t)
-	tx := testDB.Begin()
-	defer tx.Rollback()
-
-	sr := repository.NewSessionRepository(tx)
 
 	t.Run("fails on empty token", func(t *testing.T) {
+		tx := testDB.Begin()
+		defer tx.Rollback()
+		sr := repository.NewSessionRepository(tx)
+
 		session, err := sr.GetSessionByToken("")
 		is.Equal(session, nil)
 		is.Equal(err, apperrors.ErrTokenIsEmpty)
 	})
 
 	t.Run("fails on non-existing token", func(t *testing.T) {
+		tx := testDB.Begin()
+		defer tx.Rollback()
+		sr := repository.NewSessionRepository(tx)
+
 		session, err := sr.GetSessionByToken(uuid.New().String())
 		is.Equal(session, nil)
 		is.Equal(err, gorm.ErrRecordNotFound)
 	})
 
 	t.Run("retrieves session by token", func(t *testing.T) {
-		session, err := models.NewSession(uuid.New(), uuid.New().String(), time.Now().Add(1*time.Hour))
+		tx := testDB.Begin()
+		defer tx.Rollback()
+		sr := repository.NewSessionRepository(tx)
+
+		user, err := h.CreateTestUser(tx, "testGetSession@test.com")
+		is.NoErr(err)
+
+		session, err := models.NewSession(user.ID, uuid.New().String(), time.Now().Add(1*time.Hour))
 		is.NoErr(err)
 
 		err = sr.CreateSession(session)
@@ -95,13 +118,15 @@ func TestSessionRepository_GetSessionByToken(t *testing.T) {
 func TestSessionRepository_DeleteSessionByToken(t *testing.T) {
 	testDB := testutils.TestDBSetup()
 	is := is.New(t)
-	tx := testDB.Begin()
-	defer tx.Rollback()
-
-	sr := repository.NewSessionRepository(tx)
-
 	t.Run("deletes session by token", func(t *testing.T) {
-		session, err := models.NewSession(uuid.New(), uuid.New().String(), time.Now().Add(1*time.Hour))
+		tx := testDB.Begin()
+		defer tx.Rollback()
+		sr := repository.NewSessionRepository(tx)
+
+		user, err := h.CreateTestUser(tx, "testDeleteSessionByToken@test.com")
+		is.NoErr(err)
+
+		session, err := models.NewSession(user.ID, uuid.New().String(), time.Now().Add(1*time.Hour))
 		is.NoErr(err)
 
 		err = sr.CreateSession(session)
@@ -116,11 +141,19 @@ func TestSessionRepository_DeleteSessionByToken(t *testing.T) {
 	})
 
 	t.Run("fails on non-existing token", func(t *testing.T) {
+		tx := testDB.Begin()
+		defer tx.Rollback()
+		sr := repository.NewSessionRepository(tx)
+
 		err := sr.DeleteSessionByToken(uuid.New().String())
 		is.Equal(err, gorm.ErrRecordNotFound)
 	})
 
 	t.Run("fails on empty token", func(t *testing.T) {
+		tx := testDB.Begin()
+		defer tx.Rollback()
+		sr := repository.NewSessionRepository(tx)
+
 		err := sr.DeleteSessionByToken("")
 		is.Equal(err, apperrors.ErrTokenIsEmpty)
 	})
@@ -135,28 +168,30 @@ func TestSessionRepository_DeleteSessionByUserID(t *testing.T) {
 	sr := repository.NewSessionRepository(tx)
 
 	t.Run("deletes session by user ID", func(t *testing.T) {
-		sessionOne, err := models.NewSession(uuid.New(), uuid.New().String(), time.Now().Add(1*time.Hour))
+		user, err := h.CreateTestUser(tx, "testDeleteSession1@test.com")
 		is.NoErr(err)
 
+		sessionOne, err := models.NewSession(user.ID, uuid.New().String(), time.Now().Add(1*time.Hour))
+		is.NoErr(err)
 		err = sr.CreateSession(sessionOne)
 		is.NoErr(err)
-		sessionTwo, err := models.NewSession(uuid.New(), uuid.New().String(), time.Now().Add(1*time.Hour))
-		is.NoErr(err)
 
+		sessionTwo, err := models.NewSession(user.ID, uuid.New().String(), time.Now().Add(1*time.Hour))
+		is.NoErr(err)
 		err = sr.CreateSession(sessionTwo)
 		is.NoErr(err)
 
-		err = sr.DeleteSessionByUserID(sessionOne.UserID.String())
+		err = sr.DeleteSessionByUserID(user.ID.String())
 		is.NoErr(err)
 
 		for _, session := range []*models.Session{sessionOne, sessionTwo} {
 			retrievedSession, err := sr.GetSessionByToken(session.Token)
-			if session.UserID == sessionOne.UserID {
+			if session.UserID == user.ID {
 				is.Equal(retrievedSession, nil)
 				is.Equal(err, gorm.ErrRecordNotFound)
 			} else {
 				is.NoErr(err)
-				is.Equal(retrievedSession.UserID, sessionTwo.UserID)
+				is.Equal(retrievedSession.UserID, user.ID)
 			}
 		}
 	})

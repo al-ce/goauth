@@ -18,6 +18,7 @@ import (
 
 	"goauth/internal/database"
 	"goauth/internal/models"
+	"goauth/pkg/config"
 )
 
 func TestEnvSetup() {
@@ -83,4 +84,18 @@ func UserHandler_RegisterUser(db *gorm.DB, user *models.User) error {
 		return err
 	}
 	return db.Create(user1).Error
+}
+
+// Helper function to create a test user
+func CreateTestUser(db *gorm.DB, userName string) (*models.User, error) {
+	user, err := models.NewUser(userName, config.TestingPassword)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := db.Create(user).Error; err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }
