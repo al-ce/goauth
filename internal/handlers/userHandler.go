@@ -8,7 +8,6 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"goauth/internal/services"
-	"goauth/pkg/apperrors"
 	"goauth/pkg/config"
 )
 
@@ -62,7 +61,7 @@ func (uh *UserHandler) Login(c *gin.Context) {
             Str("error", err.Error()).
             Msg("Login failed")
 
-        c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": apperrors.ErrInvalidLogin})
+        c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
 
