@@ -71,6 +71,8 @@ func (us *UserService) LoginUser(email, password string) (string, error) {
 	// Check if password is correct
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
+		// Increment failed login attempts
+		us.UserRepo.IncrementFailedLogins(user.ID.String())
 		return "", apperrors.ErrInvalidLogin
 	}
 

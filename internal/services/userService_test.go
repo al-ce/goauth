@@ -190,6 +190,37 @@ func TestUserService_LoginUser(t *testing.T) {
 		_, err = us.LoginUser(testEmail, password)
 		is.Equal(err, apperrors.ErrAccountIsLocked)
 	})
+
+	t.Run("locks account after max attempts", func(t *testing.T) {
+		tx := testDB.Begin()
+		defer tx.Rollback()
+
+		userRepo := repository.NewUserRepository(tx)
+		sessionRepo := repository.NewSessionRepository(tx)
+		us := services.NewUserService(userRepo, sessionRepo)
+
+		// Register user
+		testEmail := "lockoutTheUser@example.com"
+		err := us.RegisterUser(testEmail, password)
+		is.NoErr(err)
+
+		// Get registered user
+		user, err := userRepo.LookupUser(testEmail)
+		is.NoErr(err)
+
+		// Manually set failed attempts to max-1
+		tx.Model(&models.User{}).Where("id = ?", user.ID).
+			Updates(map[string]any{"failed_login_attempts": config.MaxLoginAttempts - 1})
+
+		// Fail a login attempt
+		_, err = us.LoginUser(testEmail, "thisIsNotThePassword")
+		is.Equal(err, apperrors.ErrInvalidLogin)
+
+		// Attempt subsequent login, expecting locked account
+		_, err = us.LoginUser(testEmail, password)
+		is.Equal(err, apperrors.ErrInvalidLogin)
+
+	})
 }
 
 func TestUserService_GetUserProfile(t *testing.T) {
