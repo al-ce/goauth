@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -24,6 +25,8 @@ import (
 func TestEnvSetup() {
 	os.Setenv("PORT", "3001")
 	os.Setenv("DB", "host=localhost user=goauth_test password=goauth_test dbname=goauth_test port=5432 sslmode=disable TimeZone=UTC")
+
+	zerolog.SetGlobalLevel(zerolog.Disabled)
 
 	gin.SetMode(gin.TestMode)
 	gin.DefaultWriter = io.Discard
