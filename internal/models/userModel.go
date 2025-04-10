@@ -9,6 +9,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"goauth/pkg/apperrors"
+	"goauth/pkg/config"
 )
 
 type User struct {
@@ -33,8 +34,7 @@ func NewUser(email string, password string) (*User, error) {
 		return nil, apperrors.ErrEmailMaxLength
 	}
 
-	const minEntropyBits = 64
-	if err = passwordvalidator.Validate(password, minEntropyBits); err != nil {
+	if err = passwordvalidator.Validate(password, config.MinEntropyBits); err != nil {
 		return nil, err
 	}
 

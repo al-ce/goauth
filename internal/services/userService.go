@@ -163,8 +163,7 @@ func (us *UserService) UpdateUser(userID string, request map[string]any) error {
 	}
 
 	if password, ok := request["password"].(string); ok && password != "" {
-		const minEntropyBits = 64
-		if err := passwordvalidator.Validate(password, minEntropyBits); err != nil {
+		if err := passwordvalidator.Validate(password, config.MinEntropyBits); err != nil {
 			return err
 		}
 

@@ -1,12 +1,12 @@
 # @name ping
 
-GET http://localhost:3000/ping
+GET http://localhost:3001/ping
 
 ###
 
 # @name register
 
-POST http://localhost:3000/register
+POST http://localhost:3001/register
 Accept: application/json
 Content-Type: application/json
 
@@ -18,7 +18,7 @@ Content-Type: application/json
 ###
 
 # @name login
-POST http://localhost:3000/login
+POST http://localhost:3001/login
 Accept: application/json
 Content-Type: application/json
 
@@ -30,19 +30,19 @@ Content-Type: application/json
 ###
 
 # @name profile
-GET http://localhost:3000/profile
+GET http://localhost:3001/profile
 Cookie: {{login.response.headers.Set-Cookie}}
 
 ###
 
 # @name permanently delete user
-GET http://localhost:3000/deleteaccount
+GET http://localhost:3001/deleteaccount
 Cookie: {{login.response.headers.Set-Cookie}}
 
 ###
 
 # @name update
-POST http://localhost:3000/updateuser
+POST http://localhost:3001/updateuser
 Cookie: {{login.response.headers.Set-Cookie}}
 Accept: application/json
 Content-Type: application/json
@@ -55,14 +55,14 @@ Content-Type: application/json
 ###
 
 # @name logout
-POST http://localhost:3000/logout
+POST http://localhost:3001/logout
 Cookie: {{login.response.headers.Set-Cookie}}
 Accept: application/json
 
 ###
 
 # @name logouteverywhere
-POST http://localhost:3000/logouteverywhere
+POST http://localhost:3001/logouteverywhere
 Cookie: {{login.response.headers.Set-Cookie}}
 Accept: application/json
 ###

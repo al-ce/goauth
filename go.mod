@@ -6,7 +6,6 @@ require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/google/uuid v1.6.0
-	github.com/joho/godotenv v1.5.1
 	github.com/matryer/is v1.4.1
 	github.com/rs/zerolog v1.34.0
 	github.com/wagslane/go-password-validator v0.3.0

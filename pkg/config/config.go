@@ -2,6 +2,8 @@ package config
 
 const JwtCookieName = "JWT_SECRET"
 
+const MinEntropyBits = 64
+
 const TokenExpiration = 3600*24*7
 
 const TestingPassword = "correcthorsebatterystaple"
