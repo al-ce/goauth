@@ -6,7 +6,8 @@ TEST_DB := "goauth_test"
 TEST_USER := "goauth_test"
 TEST_PASS := "goauth_test"
 HOST := "localhost"
-PORT := "5432"
+DB_PORT := "5432"
+PORT := "3001"
 DRIVER := "postgres"
 INITDEVDB := "scripts/init_dev.sql"
 INITTESTDB := "scripts/init_testing.sql"
@@ -14,8 +15,13 @@ INITTESTDB := "scripts/init_testing.sql"
 default:
     @just --list
 
-# watch for changes and run the server
 watch:
+    #!/usr/bin/env sh
+    export JWT_SECRET=$(date | sha256sum | cut -d' ' -f1)
+    export PORT={{PORT}}
+    export DB="{{DRIVER}}://{{DEV_USER}}:{{DEV_PASS}}@{{HOST}}:{{DB_PORT}}/{{DEV_DB}}"
+    echo "Using JWT_SECRET: $JWT_SECRET"
+    echo "Using DB: $DB"
     CompileDaemon \
     --build="go build -o goauth ./main.go" \
     --command="./goauth"
@@ -60,7 +66,7 @@ rain env="":
           --driver="{{DRIVER}}" \
           --username="{{TEST_USER}}" \
           --host="{{HOST}}" \
-          --port="{{PORT}}" \
+          --port="{{DB_PORT}}" \
           --database="{{TEST_DB}}" \
           --password="{{TEST_PASS}}"
     else
@@ -68,7 +74,7 @@ rain env="":
           --driver="{{DRIVER}}" \
           --username="{{DEV_USER}}" \
           --host="{{HOST}}" \
-          --port="{{PORT}}" \
+          --port="{{DB_PORT}}" \
           --database="{{DEV_DB}}" \
           --password="{{DEV_PASS}}"
     fi
@@ -77,9 +83,9 @@ rain env="":
 pg env="":
     #!/usr/bin/env sh
     if [ "{{env}}" = "test" ]; then
-        psql -h {{HOST}} -p {{PORT}} -U {{TEST_USER}} {{TEST_DB}}
+        psql -h {{HOST}} -p {{DB_PORT}} -U {{TEST_USER}} {{TEST_DB}}
     else
-        psql -h {{HOST}} -p {{PORT}} -U {{DEV_USER}} {{DEV_DB}}
+        psql -h {{HOST}} -p {{DB_PORT}} -U {{DEV_USER}} {{DEV_DB}}
     fi
 
 # send GET request to ping endpoint
