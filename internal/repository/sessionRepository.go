@@ -1,8 +1,10 @@
 package repository
 
 import (
+	"context"
 	"time"
 
+	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 
 	"goauth/internal/models"
@@ -66,4 +68,46 @@ func (sr *SessionRepository) DeleteSessionByUserID(userID string) error {
 		return gorm.ErrRecordNotFound
 	}
 	return result.Error
+}
+
+// StartSessionCleanup starts a background goroutine to periodically clean up expired sessions
+func (sr *SessionRepository) StartSessionCleanup(interval time.Duration, ctx context.Context) (chan struct{}, error) {
+	// Notification channel
+	cleanupComplete := make(chan struct{})
+
+	// cf. https://gobyexample.com/tickers
+	go func() {
+		ticker := time.NewTicker(interval)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ticker.C:
+				log.Info().Msg("session cleanup started")
+				result := sr.DB.Where("expires_at < ?", time.Now()).Delete(&models.Session{})
+				if result.Error != nil {
+					log.Error().Err(result.Error).Msg("Error during session cleanup")
+				} else {
+					log.Info().Int64("deleted_count", result.RowsAffected).Msg("Session cleanup completed")
+				}
+
+				// Signal cleanup completion
+				select {
+				case cleanupComplete <- struct{}{}:
+				default: // Do not block if no receiver is listening
+				}
+
+			case <-ctx.Done():
+				log.Info().Msg("Stopping session cleanup routine")
+				close(cleanupComplete)
+				return
+			}
+		}
+	}()
+
+	log.Info().
+		Dur("interval", interval).
+		Msg("Started session cleanup routine")
+
+	return cleanupComplete, nil
 }

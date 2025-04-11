@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -9,6 +10,7 @@ import (
 	passwordvalidator "github.com/wagslane/go-password-validator"
 
 	"goauth/internal/database"
+	"goauth/internal/repository"
 	"goauth/internal/server"
 	"goauth/pkg/config"
 	"goauth/pkg/logger"
@@ -23,6 +25,13 @@ func main() {
 
 	db := database.NewDB()
 	database.Migrate(db)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Schedule expired session cleanups
+	sessionRepo := repository.NewSessionRepository(db)
+	sessionRepo.StartSessionCleanup(config.SessionCleanupInterval, ctx)
 
 	log.Info().Str("PORT", os.Getenv("PORT")).Msg("Starting server")
 

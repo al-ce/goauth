@@ -1,6 +1,7 @@
 package repository_test
 
 import (
+	"errors"
 	"testing"
 	"time"
 
@@ -205,4 +206,45 @@ func TestSessionRepository_DeleteSessionByUserID(t *testing.T) {
 		err := sr.DeleteSessionByUserID("")
 		is.Equal(err, apperrors.ErrUserIdEmpty)
 	})
+}
+
+func TestSessionRepository_StartSessionCleanup(t *testing.T) {
+	testDB := testutils.TestDBSetup()
+	is := is.New(t)
+	tx := testDB.Begin()
+	defer tx.Rollback()
+	sr := repository.NewSessionRepository(tx)
+	user, err := h.CreateTestUser(tx, "testSessionCleanup@test.com")
+	is.NoErr(err)
+
+	// Create two sessions, one that will expire before cleanup starts,
+	// another that won't expire and shouldn't be cleaned up
+	sessionToClean, err := models.NewSession(user.ID, uuid.New().String(), time.Now().Add(-time.Hour))
+	is.NoErr(err)
+	err = sr.CreateSession(sessionToClean)
+	is.NoErr(err)
+
+	sessionToRemain, err := models.NewSession(user.ID, uuid.New().String(), time.Now().Add(time.Hour))
+	is.NoErr(err)
+	err = sr.CreateSession(sessionToRemain)
+	is.NoErr(err)
+
+	// Start cleanup with a short interval
+	ctx := t.Context()
+	cleanupComplete, err := sr.StartSessionCleanup(time.Millisecond, ctx)
+	is.NoErr(err)
+
+	select {
+	case <-cleanupComplete:
+	case <-time.After(2 * time.Second):
+		t.Fatal("cleanup took too long, aborting")
+	}
+
+	var cleanedSession models.Session
+	err = tx.Where("id = ?", sessionToClean.ID).First(&cleanedSession).Error
+	is.True(errors.Is(err, gorm.ErrRecordNotFound)) // Should not find the cleaned session
+
+	var remainingSession models.Session
+	err = tx.Where("id = ?", sessionToRemain.ID).First(&remainingSession).Error
+	is.NoErr(err)
 }
