@@ -17,12 +17,17 @@ type Session struct {
 	CreatedAt time.Time `gorm:"type:timestamp;not null;default:now()"`
 }
 
+// NewSession creates a new Session value from a user id, a token string, and
+// an expiration time
 func NewSession(userID uuid.UUID, token string, expiresAt time.Time) (*Session, error) {
 	if userID == uuid.Nil {
 		return nil, apperrors.ErrUserIdEmpty
 	}
 	if token == "" {
 		return nil, apperrors.ErrTokenIsEmpty
+	}
+	if expiresAt.IsZero() {
+		return nil, apperrors.ErrExpiresAtIsEmpty
 	}
 
 	return &Session{

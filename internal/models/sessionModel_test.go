@@ -31,6 +31,10 @@ func TestSessionModel_NewSession(t *testing.T) {
 		_, err := models.NewSession(uuid.New(), "", time.Now().Add(24*time.Hour))
 		is.Equal(err, apperrors.ErrTokenIsEmpty)
 	})
+	t.Run("fails when expiration time is empty", func(t *testing.T) {
+		_, err := models.NewSession(uuid.New(), "test-token", time.Time{})
+		is.Equal(err, apperrors.ErrExpiresAtIsEmpty)
+	})
 }
 
 func TestSessionModel_CascadeToSessions(t *testing.T) {

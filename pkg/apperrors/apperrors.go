@@ -13,6 +13,7 @@ var (
 	ErrDuplicateEmail                = New("Duplicate email")
 	ErrEmailIsEmpty                  = New("Email is empty")
 	ErrEmailMaxLength                = New("Email exceeds max length of 254 characters")
+	ErrExpiresAtIsEmpty              = New("Expiration time is empty")
 	ErrFailedUserUpade               = New("Could not update user")
 	ErrInvalidLogin                  = New("Invalid login credentials")
 	ErrPasswordIsEmpty               = New("Password is empty")
