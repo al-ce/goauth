@@ -5,12 +5,12 @@ import (
 
 	"github.com/matryer/is"
 
-	"goauth/internal/testutils"
+	"goauth/internal/database"
 )
 
 func TestConnectToDB(t *testing.T) {
 	is := is.New(t)
-	testDB := testutils.TestDBSetup()
+	testDB := database.NewDB()
 	t.Run("connects", func(t *testing.T) {
 		is.True(testDB != nil)
 	})
