@@ -4,19 +4,28 @@ import (
 	"testing"
 
 	"github.com/matryer/is"
+	"golang.org/x/crypto/bcrypt"
 
-	"goauth/pkg/config"
 	"goauth/internal/models"
+	"goauth/pkg/config"
 )
 
 func TestNewUser(t *testing.T) {
 	is := is.New(t)
 
+	// Valid email and password should return nil err, non-nil user value
 	validEmail := "test@newuser.com"
 	validPassword := config.TestingPassword
+	t.Run("valid email and password", func(t *testing.T) {
+		user, err := models.NewUser(validEmail, validPassword)
+		is.True(user != nil)
+		is.NoErr(err)
 
-	_, err := models.NewUser(validEmail, validPassword)
-	is.NoErr(err)
+		// User value holds passed email and password
+		is.Equal(user.Email, validEmail)
+		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(validPassword))
+		is.NoErr(err)
+	})
 
 	exceeds254 := "example@"
 	for range 256 {
