@@ -8,15 +8,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type DBConfig struct {
-	Host       string
-	Port       string
-	User       string
-	Password   string
-	Name       string
-	ServerPort string
-}
-
 func NewDB() *gorm.DB {
 	var db *gorm.DB
 	dsn := os.Getenv("DB")
