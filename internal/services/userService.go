@@ -58,7 +58,7 @@ func (us *UserService) LoginUser(email, password string) (string, error) {
 	}
 
 	// Check if user exists
-	user, err := us.UserRepo.LookupUser(email)
+	user, err := us.UserRepo.GetUserByEmail(email)
 	if err != nil {
 		return "", err
 	}

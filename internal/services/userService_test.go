@@ -149,7 +149,7 @@ func TestUserService_LoginUser(t *testing.T) {
 		claims, ok := parsedToken.Claims.(jwt.MapClaims)
 		is.True(ok)
 
-		user, err := userRepo.LookupUser(testEmail)
+		user, err := userRepo.GetUserByEmail(testEmail)
 		is.NoErr(err)
 
 		is.Equal(claims["sub"], user.ID.String())
@@ -180,7 +180,7 @@ func TestUserService_LoginUser(t *testing.T) {
 		is.NoErr(err)
 
 		// Get registered user
-		user, err := userRepo.LookupUser(testEmail)
+		user, err := userRepo.GetUserByEmail(testEmail)
 		is.NoErr(err)
 
 		// Lock account
@@ -205,7 +205,7 @@ func TestUserService_LoginUser(t *testing.T) {
 		is.NoErr(err)
 
 		// Get registered user
-		user, err := userRepo.LookupUser(testEmail)
+		user, err := userRepo.GetUserByEmail(testEmail)
 		is.NoErr(err)
 
 		// Manually set failed attempts to max-1

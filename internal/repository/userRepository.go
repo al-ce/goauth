@@ -40,7 +40,7 @@ func (ur *UserRepository) RegisterUser(u *models.User) error {
 	return err
 }
 
-func (r *UserRepository) LookupUser(email string) (*models.User, error) {
+func (r *UserRepository) GetUserByEmail(email string) (*models.User, error) {
 	var user models.User
 
 	result := r.DB.First(&user, "email = ?", email)

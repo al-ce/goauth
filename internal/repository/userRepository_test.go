@@ -91,12 +91,12 @@ func TestUserRepository_LookupUser(t *testing.T) {
 	is.NoErr(err)
 
 	t.Run("non-existing user", func(t *testing.T) {
-		dbUser, err := ur.LookupUser("doesNotExist@test.com")
+		dbUser, err := ur.GetUserByEmail("doesNotExist@test.com")
 		is.Equal(dbUser, nil)
 		is.Equal(err, apperrors.ErrUserNotFound)
 	})
 	t.Run("existing user", func(t *testing.T) {
-		dbUser, err := ur.LookupUser(user.Email)
+		dbUser, err := ur.GetUserByEmail(user.Email)
 		is.NoErr(err)
 
 		is.True(dbUser.ID != uuid.UUID{})
@@ -208,7 +208,7 @@ func TestUserRepository_IncrementFailedLogins(t *testing.T) {
 
 		err = ur.IncrementFailedLogins(user.ID.String())
 		is.NoErr(err)
-		user, err = ur.LookupUser(user.Email)
+		user, err = ur.GetUserByEmail(user.Email)
 		is.NoErr(err)
 		is.Equal(user.FailedLoginAttempts, 1)
 	})
@@ -233,7 +233,7 @@ func TestUserRepository_LockAccount(t *testing.T) {
 		is.NoErr(err)
 
 		err = ur.LockAccount(user.ID.String())
-		user, err = ur.LookupUser(user.Email)
+		user, err = ur.GetUserByEmail(user.Email)
 		is.NoErr(err)
 		is.True(user.AccountLocked)
 	})
