@@ -1,4 +1,4 @@
-package models
+package models_test
 
 import (
 	"testing"
@@ -6,6 +6,7 @@ import (
 	"github.com/matryer/is"
 
 	"goauth/pkg/config"
+	"goauth/internal/models"
 )
 
 func TestNewUser(t *testing.T) {
@@ -14,7 +15,7 @@ func TestNewUser(t *testing.T) {
 	validEmail := "test@newuser.com"
 	validPassword := config.TestingPassword
 
-	_, err := NewUser(validEmail, validPassword)
+	_, err := models.NewUser(validEmail, validPassword)
 	is.NoErr(err)
 
 	exceeds254 := "example@"
@@ -38,7 +39,7 @@ func TestNewUser(t *testing.T) {
 
 	for name, email := range invalidEmails {
 		t.Run(name, func(t *testing.T) {
-			_, err := NewUser(email, validPassword)
+			_, err := models.NewUser(email, validPassword)
 			is.True(err != nil)
 		})
 	}
@@ -52,7 +53,7 @@ func TestNewUser(t *testing.T) {
 
 	for name, password := range invalidPasswords {
 		t.Run(name, func(t *testing.T) {
-			_, err := NewUser(validEmail, password)
+			_, err := models.NewUser(validEmail, password)
 			is.True(err != nil)
 		})
 	}
