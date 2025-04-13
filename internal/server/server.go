@@ -24,8 +24,12 @@ func NewAPIServer(db *gorm.DB) *APIServer {
 	handlers := initHandlers(services)
 	middlewares := initMiddlewares(db)
 
+	router := gin.New()
+	router.Use(gin.Logger())
+	router.Use(gin.Recovery())
+
 	server := &APIServer{
-		Router:      gin.Default(),
+		Router:      router,
 		Handlers:    handlers,
 		Middlewares: middlewares,
 	}
