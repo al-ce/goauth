@@ -27,6 +27,7 @@ func NewAPIServer(db *gorm.DB) *APIServer {
 	router := gin.New()
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
+	router.SetTrustedProxies([]string{"127.0.0.1"})
 
 	server := &APIServer{
 		Router:      router,
@@ -69,7 +70,7 @@ func (s *APIServer) Run() {
 
 func initRepositories(db *gorm.DB) *Repositories {
 	return &Repositories{
-		User: repository.NewUserRepository(db),
+		User:    repository.NewUserRepository(db),
 		Session: repository.NewSessionRepository(db),
 	}
 }
@@ -93,7 +94,7 @@ func initMiddlewares(db *gorm.DB) *Middlewares {
 }
 
 type Repositories struct {
-	User *repository.UserRepository
+	User    *repository.UserRepository
 	Session *repository.SessionRepository
 }
 
