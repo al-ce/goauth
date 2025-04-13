@@ -24,12 +24,15 @@ type User struct {
 
 func NewUser(email string, password string) (*User, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+
 	if err != nil {
 		return nil, err
 	}
+
 	if _, err := mail.ParseAddress(email); err != nil {
 		return nil, err
 	}
+
 	if len(email) > 254 {
 		return nil, apperrors.ErrEmailMaxLength
 	}
