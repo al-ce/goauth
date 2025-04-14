@@ -161,7 +161,7 @@ func TestUserService_LoginUser(t *testing.T) {
 		is.True(math.Abs(exp-expectedExp) < 5)
 
 		// Verify session was created
-		session, err := sessionRepo.GetSessionByToken(token)
+		session, err := sessionRepo.GetUnexpiredSessionByToken(token)
 		is.NoErr(err)
 		is.Equal(session.UserID.String(), user.ID.String())
 	})

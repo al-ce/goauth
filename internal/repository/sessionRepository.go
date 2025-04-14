@@ -36,7 +36,7 @@ func (sr *SessionRepository) CreateSession(session *models.Session) error {
 	return sr.DB.Create(session).Error
 }
 
-func (sr *SessionRepository) GetSessionByToken(token string) (*models.Session, error) {
+func (sr *SessionRepository) GetUnexpiredSessionByToken(token string) (*models.Session, error) {
 	if token == "" {
 		return nil, apperrors.ErrTokenIsEmpty
 	}

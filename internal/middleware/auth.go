@@ -67,7 +67,7 @@ func (am *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 		}
 
 		// Get session from database
-		session, err := am.SessionRepo.GetSessionByToken(tokenString)
+		session, err := am.SessionRepo.GetUnexpiredSessionByToken(tokenString)
 		if err != nil {
 			log.Debug().Err(err).Msg("Session not found")
 			c.AbortWithStatus(http.StatusUnauthorized)

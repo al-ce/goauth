@@ -190,7 +190,7 @@ func (us *UserService) UpdateUser(userID string, request map[string]any) error {
 // RotateSession creates a new session and replaces the old one
 func (us *UserService) RotateSession(oldToken string) (string, error) {
 	// Check session exists
-	oldSession, err := us.SessionRepo.GetSessionByToken(oldToken)
+	oldSession, err := us.SessionRepo.GetUnexpiredSessionByToken(oldToken)
 	if err != nil {
 		return "", err
 	}

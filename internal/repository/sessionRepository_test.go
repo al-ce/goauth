@@ -80,7 +80,7 @@ func TestSessionRepository_GetSessionByToken(t *testing.T) {
 		defer tx.Rollback()
 		sr := repository.NewSessionRepository(tx)
 
-		session, err := sr.GetSessionByToken("")
+		session, err := sr.GetUnexpiredSessionByToken("")
 		is.Equal(session, nil)
 		is.Equal(err, apperrors.ErrTokenIsEmpty)
 	})
@@ -90,7 +90,7 @@ func TestSessionRepository_GetSessionByToken(t *testing.T) {
 		defer tx.Rollback()
 		sr := repository.NewSessionRepository(tx)
 
-		session, err := sr.GetSessionByToken(uuid.New().String())
+		session, err := sr.GetUnexpiredSessionByToken(uuid.New().String())
 		is.Equal(session, nil)
 		is.Equal(err, gorm.ErrRecordNotFound)
 	})
@@ -109,7 +109,7 @@ func TestSessionRepository_GetSessionByToken(t *testing.T) {
 		err = sr.CreateSession(session)
 		is.NoErr(err)
 
-		retrievedSession, err := sr.GetSessionByToken(session.Token)
+		retrievedSession, err := sr.GetUnexpiredSessionByToken(session.Token)
 		is.NoErr(err)
 		is.Equal(retrievedSession.UserID, session.UserID)
 		is.Equal(retrievedSession.Token, session.Token)
@@ -136,7 +136,7 @@ func TestSessionRepository_DeleteSessionByToken(t *testing.T) {
 		err = sr.DeleteSessionByToken(session.Token)
 		is.NoErr(err)
 
-		retrievedSession, err := sr.GetSessionByToken(session.Token)
+		retrievedSession, err := sr.GetUnexpiredSessionByToken(session.Token)
 		is.Equal(retrievedSession, nil)
 		is.Equal(err, gorm.ErrRecordNotFound)
 	})
@@ -186,7 +186,7 @@ func TestSessionRepository_DeleteSessionByUserID(t *testing.T) {
 		is.NoErr(err)
 
 		for _, session := range []*models.Session{sessionOne, sessionTwo} {
-			retrievedSession, err := sr.GetSessionByToken(session.Token)
+			retrievedSession, err := sr.GetUnexpiredSessionByToken(session.Token)
 			if session.UserID == user.ID {
 				is.Equal(retrievedSession, nil)
 				is.Equal(err, gorm.ErrRecordNotFound)

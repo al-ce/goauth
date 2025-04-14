@@ -176,7 +176,7 @@ func TestMiddlewareAuth_RequireAuth_SessionRotation(t *testing.T) {
 	is.NoErr(err)
 
 	// Check that the session is in the database
-	updatedSession, err := sessionRepo.GetSessionByToken(tokenString)
+	updatedSession, err := sessionRepo.GetUnexpiredSessionByToken(tokenString)
 	is.NoErr(err)
 
 	// Calculate halfway point
@@ -214,11 +214,11 @@ func TestMiddlewareAuth_RequireAuth_SessionRotation(t *testing.T) {
 		is.True(newTokenFromCookie != tokenString)
 
 		// Check that the old session is deleted
-		_, err = sessionRepo.GetSessionByToken(tokenString)
+		_, err = sessionRepo.GetUnexpiredSessionByToken(tokenString)
 		is.True(err != nil)
 
 		// Check that the new, rotated session is created
-		newSession, err := sessionRepo.GetSessionByToken(newTokenFromCookie)
+		newSession, err := sessionRepo.GetUnexpiredSessionByToken(newTokenFromCookie)
 		is.NoErr(err)
 		is.Equal(user.ID, newSession.UserID)
 
