@@ -35,6 +35,7 @@ func NewUserService(ur *repository.UserRepository, sr *repository.SessionReposit
 	}, nil
 }
 
+// RegisterUser mediates the new User value creation and the insertion of a user into the database
 func (us *UserService) RegisterUser(email, password string) error {
 	// Check for empty fields
 	if email == "" {
@@ -42,6 +43,13 @@ func (us *UserService) RegisterUser(email, password string) error {
 	}
 	if password == "" {
 		return apperrors.ErrPasswordIsEmpty
+	}
+
+	// Check if user exists before attempting registration
+	// If user was found, we have duplicate user
+	user, _ := us.UserRepo.GetUserByEmail(email)
+	if user != nil {
+		return apperrors.ErrDuplicateEmail
 	}
 
 	user, err := models.NewUser(email, password)
