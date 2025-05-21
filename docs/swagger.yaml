@@ -1,0 +1,206 @@
+definitions:
+  models.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  models.MessageResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  models.UserCredentialsRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+info:
+  contact: {}
+paths:
+  /deleteaccount:
+    delete:
+      description: Delete a user from the database permanently along with all their
+        sessions
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: response with message field
+          schema:
+            $ref: '#/definitions/models.MessageResponse'
+        "401":
+          description: response with error field
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: response with error field
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Delete a user
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Login an existing user with valid email and password
+      parameters:
+      - description: User login credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserCredentialsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: response with message field
+          schema:
+            $ref: '#/definitions/models.MessageResponse'
+        "400":
+          description: response with error field
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: response with error field
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: login a user
+  /logout:
+    post:
+      description: Logs out a logged in user by deleting the associated session in
+        the database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: response with success message
+          schema:
+            $ref: '#/definitions/models.MessageResponse'
+        "401":
+          description: unauthorized - cookie not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: response with error field
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: logout a user
+  /logouteverywhere:
+    post:
+      description: Logs out a logged in user on all devices by deleting all sessions
+        associated with that user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: response with message field
+          schema:
+            $ref: '#/definitions/models.MessageResponse'
+        "401":
+          description: response with error field
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: response with error field
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: End all user sessions
+  /ping:
+    get:
+      consumes:
+      - application/json
+      description: do ping
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: response with message field
+          schema:
+            $ref: '#/definitions/models.MessageResponse'
+      summary: ping the server
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Add a new user to the database from a valid email and password
+      parameters:
+      - description: User registration credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserCredentialsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: response with message field
+          schema:
+            $ref: '#/definitions/models.MessageResponse'
+        "400":
+          description: response with error field
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: response with error field
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: register a new user
+  /updateuser:
+    post:
+      consumes:
+      - application/json
+      description: Update a user's email or password in the database
+      parameters:
+      - description: User registration credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserCredentialsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: response with message field
+          schema:
+            $ref: '#/definitions/models.MessageResponse'
+        "400":
+          description: response with error field
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: response with error field
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: response with error field
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: update user credentials
+  /whoami:
+    get:
+      description: Get a user's client IP, email, last login time, and user ID (can
+        be extended)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: response with message field
+          schema:
+            $ref: '#/definitions/models.MessageResponse'
+        "400":
+          description: response with error field
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: response with error field
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get information about the currently logged in user
+swagger: "2.0"
