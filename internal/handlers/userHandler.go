@@ -49,7 +49,7 @@ func (uh *UserHandler) RegisterUser(c *gin.Context) {
 			Str("clientIP", clientIP).
 			Str("error", err.Error()).
 			Msg("Bad user registration request")
-
+		err = apperrors.ErrMissingCredentials
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -100,13 +100,15 @@ func (uh *UserHandler) Login(c *gin.Context) {
 			Str("email", body.Email).
 			Str("clientIP", clientIP).
 			Str("error", err.Error()).
-			Msg("Bad user registration request")
+			Msg("Bad user login request")
+
+		err = apperrors.ErrMissingCredentials
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	// Attempt login
-	tokenString, err := uh.UserService.LoginUser(body.Email, body.Password)
+	sessionToken, err := uh.UserService.LoginUser(body.Email, body.Password)
 	if err != nil {
 		log.Info().
 			Str("email", body.Email).
@@ -114,18 +116,26 @@ func (uh *UserHandler) Login(c *gin.Context) {
 			Str("error", err.Error()).
 			Msg("Login failed")
 
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		var status int
+		if err == apperrors.ErrInvalidLogin {
+			status = http.StatusUnauthorized
+		} else {
+			status = http.StatusBadRequest
+		}
+
+		c.AbortWithStatusJSON(status, gin.H{"error": err.Error()})
 		return
 	}
 
 	// Set session cookie
 	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie(config.JwtCookieName, tokenString, config.TokenExpiration, "", "", true, true)
+	c.SetCookie(config.SessionCookieName, sessionToken, config.SessionExpiration, "", "", true, true)
 
 	log.Info().
 		Str("email", body.Email).
 		Str("clientIP", clientIP).
 		Msg("login success")
+
 	c.JSON(http.StatusOK, gin.H{
 		"message": "login success",
 	})
@@ -142,29 +152,32 @@ func (uh *UserHandler) Login(c *gin.Context) {
 func (uh *UserHandler) Logout(c *gin.Context) {
 	clientIP := c.ClientIP()
 
-	tokenString, err := c.Cookie(config.JwtCookieName)
+	sessionToken, err := c.Cookie(config.SessionCookieName)
 	if err != nil {
 		log.Info().
 			Str("clientIP", clientIP).
 			Str("error", err.Error()).
 			Msg("Cookie not found")
-		c.AbortWithStatus(http.StatusBadRequest)
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 
-	if err := uh.UserService.Logout(tokenString); err != nil {
+	if err := uh.UserService.Logout(sessionToken); err != nil {
 		log.Error().
 			Str("clientIP", clientIP).
 			Str("error", err.Error()).
 			Msg("Logout failed")
+
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
+	c.SetCookie(config.SessionCookieName, "", -1, "", "", true, true)
+
 	log.Info().
 		Str("clientIP", clientIP).
 		Msg("Logout success")
-	c.SetCookie(config.JwtCookieName, "", -1, "", "", true, true)
+
 	c.JSON(http.StatusOK, gin.H{"message": "logged out successfully"})
 }
 
@@ -184,8 +197,9 @@ func (uh *UserHandler) LogoutEverywhere(c *gin.Context) {
 	if !exists {
 		log.Info().
 			Str("clientIP", clientIP).
-			Msg("userID not found in cookie")
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{})
+			Msg("userID not found in context")
+
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 	userID := userIDStr.(string)
@@ -201,7 +215,7 @@ func (uh *UserHandler) LogoutEverywhere(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie(config.JwtCookieName, "", -1, "", "", true, true)
+	c.SetCookie(config.SessionCookieName, "", -1, "", "", true, true)
 	c.JSON(http.StatusOK, gin.H{"message": "logged out everywhere"})
 }
 
@@ -221,7 +235,7 @@ func (uh *UserHandler) WhoAmI(c *gin.Context) {
 	if !exists {
 		log.Info().
 			Str("clientIP", clientIP).
-			Msg("userID not found in cookie")
+			Msg("userID not found in context")
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{})
 		return
 	}
@@ -242,8 +256,10 @@ func (uh *UserHandler) WhoAmI(c *gin.Context) {
 		Msg("user profile request successful")
 
 	c.JSON(http.StatusOK, gin.H{
+		"clientIP":  clientIP,
 		"email":     userProfile.Email,
 		"lastLogin": userProfile.LastLogin,
+		"userID":    userID,
 	})
 }
 
@@ -266,7 +282,8 @@ func (uh *UserHandler) UpdateUser(c *gin.Context) {
 	if !exists {
 		log.Info().
 			Str("clientIP", clientIP).
-			Msg("userID not found in cookie")
+			Msg("userID not found in context")
+
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{})
 		return
 	}
@@ -283,7 +300,9 @@ func (uh *UserHandler) UpdateUser(c *gin.Context) {
 			Str("email", body.Email).
 			Str("clientIP", clientIP).
 			Str("error", err.Error()).
-			Msg("Bad user registration request")
+			Msg("Bad user update request")
+
+		err = apperrors.ErrMissingCredentials
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -301,6 +320,7 @@ func (uh *UserHandler) UpdateUser(c *gin.Context) {
 			Str("email", body.Email).
 			Str("clientIP", clientIP).
 			Msg("attempt to update user with empty value")
+
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no valid fields provided"})
 		return
 	}
@@ -311,6 +331,7 @@ func (uh *UserHandler) UpdateUser(c *gin.Context) {
 			Str("clientIP", clientIP).
 			Str("error", err.Error()).
 			Msg("failed to update user")
+
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -319,6 +340,7 @@ func (uh *UserHandler) UpdateUser(c *gin.Context) {
 		Str("email", body.Email).
 		Str("clientIP", clientIP).
 		Msg("successfully updated user")
+
 	c.JSON(http.StatusOK, gin.H{"message": "user updated"})
 }
 
