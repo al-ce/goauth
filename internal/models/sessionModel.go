@@ -33,7 +33,7 @@ func NewSession(userID uuid.UUID, sessionID uuid.UUID, expiresAt time.Time) (*Se
 	return &Session{
 		UserID:    userID,
 		ID:        sessionID,
-		ExpiresAt: expiresAt,
-		CreatedAt: time.Now(),
+		ExpiresAt: expiresAt.UTC(),
+		CreatedAt: time.Now().UTC(),
 	}, nil
 }
