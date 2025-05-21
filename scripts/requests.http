@@ -1,5 +1,5 @@
-# @name ping
 
+# @name ping
 GET http://localhost:3001/ping
 
 ###
@@ -29,14 +29,14 @@ Content-Type: application/json
 
 ###
 
-# @name profile
-GET http://localhost:3001/profile
+# @name whoami
+GET http://localhost:3001/whoami
 Cookie: {{login.response.headers.Set-Cookie}}
 
 ###
 
 # @name permanently delete user
-GET http://localhost:3001/deleteaccount
+DELETE http://localhost:3001/deleteaccount
 Cookie: {{login.response.headers.Set-Cookie}}
 
 ###
@@ -66,4 +66,3 @@ POST http://localhost:3001/logouteverywhere
 Cookie: {{login.response.headers.Set-Cookie}}
 Accept: application/json
 ###
-
