@@ -23,6 +23,17 @@ func NewUserHandler(userService *services.UserService) (*UserHandler, error) {
 	return &UserHandler{UserService: userService}, nil
 }
 
+// RegisterUser godoc
+// @Summary register a new user
+// @Schemes
+// @Description Add a new user to the database from a valid email and password
+// @Accept json
+// @Produce json
+// @Param request body models.UserCredentialsRequest true "User registration credentials"
+// @Success 200 {object} models.MessageResponse "response with message field"
+// @Failure 400 {object} models.ErrorResponse "response with error field"
+// @Failure 500 {object} models.ErrorResponse "response with error field"
+// @Router /register [post]
 func (uh *UserHandler) RegisterUser(c *gin.Context) {
 	var body struct {
 		Email    string `json:"email" binding:"required"`
@@ -64,6 +75,17 @@ func (uh *UserHandler) RegisterUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("User %s created", body.Email)})
 }
 
+// LoginUser godoc
+// @Summary login a user
+// @Schemes
+// @Description Login an existing user with valid email and password
+// @Accept json
+// @Produce json
+// @Param request body models.UserCredentialsRequest true "User login credentials"
+// @Success 200 {object} models.MessageResponse "response with message field"
+// @Failure 400 {object} models.ErrorResponse "response with error field"
+// @Failure 401 {object} models.ErrorResponse "response with error field"
+// @Router /login [post]
 func (uh *UserHandler) Login(c *gin.Context) {
 	var body struct {
 		Email    string `json:"email" binding:"required"`
@@ -109,6 +131,14 @@ func (uh *UserHandler) Login(c *gin.Context) {
 	})
 }
 
+// Logout godoc
+// @Summary logout a user
+// @Description Logs out a logged in user by deleting the associated session in the database
+// @Produce json
+// @Success 200 {object} models.MessageResponse "response with success message"
+// @Failure 401 {object} models.ErrorResponse "unauthorized - cookie not found"
+// @Failure 500 {object} models.ErrorResponse "response with error field"
+// @Router /logout [post]
 func (uh *UserHandler) Logout(c *gin.Context) {
 	clientIP := c.ClientIP()
 
@@ -138,6 +168,15 @@ func (uh *UserHandler) Logout(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "logged out successfully"})
 }
 
+// LogoutEverywhere godoc
+// @Summary End all user sessions
+// @Schemes
+// @Description Logs out a logged in user on all devices by deleting all sessions associated with that user
+// @Produce json
+// @Success 200 {object} models.MessageResponse "response with message field"
+// @Failure 401 {object} models.ErrorResponse "response with error field"
+// @Failure 500 {object} models.ErrorResponse "response with error field"
+// @Router /logouteverywhere [post]
 func (uh *UserHandler) LogoutEverywhere(c *gin.Context) {
 	clientIP := c.ClientIP()
 
@@ -166,7 +205,16 @@ func (uh *UserHandler) LogoutEverywhere(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "logged out everywhere"})
 }
 
-func (uh *UserHandler) GetUserProfile(c *gin.Context) {
+// WhoAmI godoc
+// @Summary Get information about the currently logged in user
+// @Schemes
+// @Description Get a user's client IP, email, last login time, and user ID (can be extended)
+// @Produce json
+// @Success 200 {object} models.MessageResponse "response with message field"
+// @Failure 400 {object} models.ErrorResponse "response with error field"
+// @Failure 401 {object} models.ErrorResponse "response with error field"
+// @Router /whoami [get]
+func (uh *UserHandler) WhoAmI(c *gin.Context) {
 	clientIP := c.ClientIP()
 
 	userIDStr, exists := c.Get("userID")
@@ -199,35 +247,18 @@ func (uh *UserHandler) GetUserProfile(c *gin.Context) {
 	})
 }
 
-// User can permanently delete their account, instead of setting DeletedAt
-func (uh *UserHandler) PermanentlyDeleteUser(c *gin.Context) {
-	clientIP := c.ClientIP()
-
-	userIDStr, exists := c.Get("userID")
-	if !exists {
-		log.Info().
-			Str("clientIP", clientIP).
-			Msg("userID not found in cookie")
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{})
-		return
-	}
-	userID := userIDStr.(string)
-	err := uh.UserService.PermanentlyDeleteUser(userID)
-	if err != nil {
-		log.Info().
-			Str("clientIP", clientIP).
-			Str("error", err.Error()).
-			Msg("failed to delete user")
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-
-	log.Info().
-		Str("clientIP", clientIP).
-		Msg("successfully deleted user")
-	c.String(http.StatusOK, "account deleted")
-}
-
+// UpdateUser godoc
+// @Summary update user credentials
+// @Schemes
+// @Description Update a user's email or password in the database
+// @Accept json
+// @Produce json
+// @Param request body models.UserCredentialsRequest true "User registration credentials"
+// @Success 200 {object} models.MessageResponse "response with message field"
+// @Failure 400 {object} models.ErrorResponse "response with error field"
+// @Failure 401 {object} models.ErrorResponse "response with error field"
+// @Failure 500 {object} models.ErrorResponse "response with error field"
+// @Router /updateuser [post]
 func (uh *UserHandler) UpdateUser(c *gin.Context) {
 	clientIP := c.ClientIP()
 
