@@ -6,20 +6,20 @@ Base URL: `https://localhost:3001`
 
 ### Authentication
 
-| Endpoint            | Method | Description       | Request Body                                  | Response                                      |
-| ------------------- | ------ | ----------------- | --------------------------------------------- | --------------------------------------------- |
-| `/register`         | POST   | Register new user | `{ "email": "string", "password": "string" }` | `{ "message": "User {{user}} created" }`      |
-| `/login`            | POST   | Authenticate user | `{ "email": "string", "password": "string" }` | `{ "message": "login success" }` + JWT Cookie |
-| `/logout`           | POST   | End a session     | `{}` (requires cookie)                        | `{ "message": "logged out successfully" }`    |
-| `/logouteverywhere` | POST   | End all sessions  | `{}` (requires cookie)                        | `{ "message": "logged out everywhere" }`      |
+| Endpoint            | Method | Description       | Request Body                                  | Response                                          |
+| ------------------- | ------ | ----------------- | --------------------------------------------- | ------------------------------------------------- |
+| `/register`         | POST   | Register new user | `{ "email": "string", "password": "string" }` | `{ "message": "User {{user}} created" }`          |
+| `/login`            | POST   | Authenticate user | `{ "email": "string", "password": "string" }` | `{ "message": "login success" }` + session cookie |
+| `/logout`           | POST   | End a session     | `{}` (requires cookie)                        | `{ "message": "logged out successfully" }`        |
+| `/logouteverywhere` | POST   | End all sessions  | `{}` (requires cookie)                        | `{ "message": "logged out everywhere" }`          |
 
 ### User Management
 
-| Endpoint         | Method | Description         | Request Body                                                                   | Response                                     |
-| ---------------- | ------ | ------------------- | ------------------------------------------------------------------------------ | -------------------------------------------- |
-| `/profile`       | GET    | Get user profile    | `{}` (requires cookie)                                                         | `{ "email": "string", "lastLogin": "date" }` |
-| `/updateuser`    | POST   | Update user details | `{ "email": "string", "password": "string" }` (both optional, requires cookie) | `{ "message": "user updated" }`              |
-| `/deleteaccount` | POST   | Delete user account | `{}` (requires cookie)                                                         | `{ "message": "account deleted" }`           |
+| Endpoint         | Method | Description                  | Request Body                                                                   | Response                                                                               |
+| ---------------- | ------ | ---------------------------- | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| `/whoami`        | GET    | Get current user information | `{}` (requires cookie)                                                         | `{ "clientIP": "string", "email": "string", "lastLogin": "date", "userID": "string" }` |
+| `/updateuser`    | POST   | Update user details          | `{ "email": "string", "password": "string" }` (both optional, requires cookie) | `{ "message": "user updated" }`                                                        |
+| `/deleteaccount` | POST   | Delete user account          | `{}` (requires cookie)                                                         | `{ "message": "account deleted" }`                                                     |
 
 ## Error Handling
 
@@ -29,4 +29,4 @@ Base URL: `https://localhost:3001`
 
 ## Authentication
 
-The service uses JWT (JSON Web Tokens) for authentication. On successful login, a JWT token is stored in a cookie for subsequent requests. The token is required for all protected endpoints. The token is used as an identifier for sessions in the database. On logout, the session will be deleted from the database, invalidating the token before its natural expiration. Tokens are rotated after token halflife. Account will be locked after too many failed attempts on the /login endpoint.
+New sessions are stored on the client side as cookies with an expiration time and checked against a corresponding session in the database. Logout invalidates the session.
