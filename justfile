@@ -1,41 +1,57 @@
-PROJECT := "goauth"
-DEV_DB := "goauth"
-DEV_USER := "goauth"
-DEV_PASS := "goauth"
-TEST_DB := "goauth_test"
-TEST_USER := "goauth_test"
-TEST_PASS := "goauth_test"
+# justfile docs https://just.systems/man/en/
+# This file is used for local development convenience
+#
+# Dependencies:
+# - just https://github.com/casey/just?tab=readme-ov-file
+# - psql https://archlinux.org/packages/?name=postgresql
+# - rainfrog https://github.com/achristmascarl/rainfrog
+# - gotestfmt https://github.com/GoTestTools/gotestfmt
+# - CompileDaemon https://github.com/githubnemo/CompileDaemon
+
+PROJECT := "godiscauth"
+
+## NOTE: DEV_DB is for local development for the auth application, not the
+## database for the cross-platform discussion app project overall
+DEV_DB := "godiscauth"
+DEV_USER := "godiscauth"
+DEV_PASS := "godiscauth"
+
+TEST_DB := "godiscauth_test"
+TEST_USER := "godiscauth_test"
+TEST_PASS := "godiscauth_test"
+
 HOST := "localhost"
 DB_PORT := "5432"
 PORT := "3001"
 DRIVER := "postgres"
+
 INITDEVDB := "scripts/init_dev.sql"
 INITTESTDB := "scripts/init_testing.sql"
 
 default:
     @just --list
 
+# Run the application and watch for changes, recompile/restart on changes
 watch:
     #!/usr/bin/env sh
-    export JWT_SECRET=$(date | sha256sum | cut -d' ' -f1)
-    export PORT={{PORT}}
-    export DB="{{DRIVER}}://{{DEV_USER}}:{{DEV_PASS}}@{{HOST}}:{{DB_PORT}}/{{DEV_DB}}"
-    echo "Using JWT_SECRET: $JWT_SECRET"
+    export DISCUSSION_APP_SESSION_KEY=$(date | sha256sum | cut -d' ' -f1)
+    export AUTH_SERVER_PORT={{PORT}}
+    export DATABASE_URL="{{DRIVER}}://{{DEV_USER}}:{{DEV_PASS}}@{{HOST}}:{{DB_PORT}}/{{DEV_DB}}"
     echo "Using DB: $DB"
     CompileDaemon \
-    --build="go build -o goauth ./main.go" \
-    --command="./goauth"
+    --build="go build -o {{PROJECT}} ./main.go" \
+    --command="./{{PROJECT}}"
 
 # go test {{path}} and format the output
 test path="":
     #!/usr/bin/env sh
     if [ -z "{{path}}" ]; then
-        go test -v -json ./... | gotestfmt
+        go test -v -json ./... | gotestfmt -hide successful-tests
     else
-        go test -v -json ./internal/{{path}} | gotestfmt
+        go test -v -json ./internal/{{path}} | gotestfmt -hide successful-tests
     fi
 
-# Initialize development database
+# Initialize auth development database
 init env="":
     #!/usr/bin/env sh
     if [ "{{env}}" = "test" ]; then
