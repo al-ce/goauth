@@ -1,19 +1,12 @@
 # Authentication Service
 
-The `auth` directory contains the code to build the user registration and authentication system for the platform.
+User authentication services with session management.
+Interact with endpoints defined at [docs/api.md](api.md)
 
 ## Documentation
 
 See [api.md] for an overview of the available endpoints and the expected request/response format.
 Or see the [Swagger](https://swagger.io/docs/) documentation for the endpoints at e.g. `http://{URL}:{PORT}/swagger/index.html`
-
-## Build
-
-Build like a typical Go module:
-
-```bash
-go build -o auth ./main.go
-```
 
 ## Directory Structure
 
@@ -59,9 +52,18 @@ The `auth` module expects the following environment variables to be set:
 - `DATABASE_URL`: The URL of the database to connect to
 - `AUTH_SERVER_PORT`: The port to run the http server on
 - `DISCUSSION_APP_SESSION_KEY`: The secret key to encrypt the session id
-- `CORS_ALLOWED_ORIGINS`: comma separated string of allowed origins e.g. "http://localhost:5173,http://localhost:4173"
+- `CORS_ALLOWED_ORIGINS`: comma separated string of allowed origins e.g. `"http://localhost:5173,http://localhost:4173"`
 
 
 See `example.env` or the `watch` command in `justfile` for sample environment variables.
 
 Third party packages are defined in `go.mod` and `go.sum`.
+
+## Credits
+
+Much learned about http and async go from lessons at https://calhoun.io
+
+Developed as part of a larger project with
+- @adamleatherman
+- @jkeehnast
+- @ samrxh

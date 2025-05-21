@@ -1,7 +1,5 @@
 # Auth Service API
 
-Base URL: `https://localhost:3001`
-
 ## Endpoints
 
 ### Authentication
