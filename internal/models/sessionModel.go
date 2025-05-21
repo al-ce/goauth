@@ -1,6 +1,10 @@
 package models
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
+	"os"
 	"time"
 
 	"github.com/google/uuid"
@@ -36,4 +40,25 @@ func NewSession(userID uuid.UUID, sessionID uuid.UUID, expiresAt time.Time) (*Se
 		ExpiresAt: expiresAt.UTC(),
 		CreatedAt: time.Now().UTC(),
 	}, nil
+}
+
+// GenerateSessionID creates a new random session ID
+func GenerateSessionID() (uuid.UUID, string, error) {
+	sessionID := uuid.New()
+	signature := createHMAC(sessionID.String())
+	return sessionID, signature, nil
+}
+
+// ValidateSessionID verifies that a session ID matches its signature
+func ValidateSessionID(sessionID uuid.UUID, signature string) bool {
+	expectedSignature := createHMAC(sessionID.String())
+	return hmac.Equal([]byte(signature), []byte(expectedSignature))
+}
+
+// createHMAC generates an HMAC signature for a session ID
+// Ref: https://www.okta.com/identity-101/hmac/
+func createHMAC(sessionID string) string {
+	h := hmac.New(sha256.New, []byte(os.Getenv(config.SessionKey)))
+	h.Write([]byte(sessionID))
+	return base64.RawURLEncoding.EncodeToString(h.Sum(nil))
 }
