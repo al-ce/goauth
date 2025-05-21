@@ -19,7 +19,11 @@ type UserRepository struct {
 }
 
 // NewUserRepository returns a value for the UserRepository struct
-	return &UserRepository{DB: db}
+func NewUserRepository(db *gorm.DB) (*UserRepository, error) {
+	if db == nil {
+		return nil, apperrors.ErrDatabaseIsNil
+	}
+	return &UserRepository{DB: db}, nil
 }
 
 // RegisterUser inserts a new user into the `users` table
