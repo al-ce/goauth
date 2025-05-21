@@ -148,7 +148,7 @@ func (r *UserRepository) LockAccount(userID string) error {
 	result := r.DB.Model(&models.User{}).Where("id = ?", userID).
 		Updates(map[string]any{
 			"account_locked":       true,
-			"account_locked_until": time.Now().Add(config.AccountLockoutLength * time.Minute),
+			"account_locked_until": time.Now().UTC().Add(config.AccountLockoutLength),
 		})
 
 	if result.Error != nil {
@@ -159,4 +159,45 @@ func (r *UserRepository) LockAccount(userID string) error {
 	}
 
 	return nil
+}
+
+// UnlockAccount sets lock flag to false, locked until time to null, and failed login count to 0
+func (r *UserRepository) UnlockAccount(userID string) error {
+	// Validate user ID
+	if userID == "" {
+		return apperrors.ErrUserIdEmpty
+	}
+
+	result := r.DB.Model(&models.User{}).Where("id = ?", userID).
+		Updates(map[string]any{
+			"account_locked":        false,
+			"account_locked_until":  nil,
+			"failed_login_attempts": 0,
+		})
+
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return apperrors.ErrUserNotFound
+	}
+
+	return nil
+}
+
+// UnlockAllExpiredLocks unlocks any locked accounts where `account_locked_until` time has passed
+func (r *UserRepository) UnlockAllExpiredLocks() (int64, error) {
+	result := r.DB.Model(&models.User{}).
+		Where("account_locked = ?", true).
+		Where("account_locked_until < ?", time.Now().UTC()).
+		Updates(map[string]any{
+			"account_locked":        false,
+			"account_locked_until":  nil,
+			"failed_login_attempts": 0,
+		})
+
+	if result.Error != nil {
+		return 0, result.Error
+	}
+	return result.RowsAffected, nil
 }
