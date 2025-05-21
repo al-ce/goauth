@@ -16,6 +16,7 @@ import (
 	"godiscauth/pkg/config"
 )
 
+// UserService is a struct that contains the repositories needed for user-related operations
 type UserService struct {
 	UserRepo    *repository.UserRepository
 	SessionRepo *repository.SessionRepository
@@ -59,7 +60,7 @@ func (us *UserService) RegisterUser(email, password string) error {
 	return us.UserRepo.RegisterUser(user)
 }
 
-// LoginUser authenticates a user, generates a JWT token, and creates a session
+// LoginUser authenticates a registered user and creates an associated session
 func (us *UserService) LoginUser(email, password string) (string, error) {
 	// Check for empty fields
 	var err error
@@ -128,7 +129,7 @@ func (us *UserService) LoginUser(email, password string) (string, error) {
 	return tokenString, nil
 }
 
-func (us *UserService) Logout(token string) error {
+// Logout invalidates a token by deleting its corresponding session
 	return us.SessionRepo.DeleteSessionByToken(token)
 }
 
@@ -158,7 +159,7 @@ func (us *UserService) GetUserProfile(userID string) (*models.UserProfile, error
 	return userProfile, nil
 }
 
-func (us *UserService) PermanentlyDeleteUser(userID string) error {
+// UpdateUser mediates the query for an update API request and the update of a user in the database
 	if userID == "" {
 		return apperrors.ErrUserIdEmpty
 	}
