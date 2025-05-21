@@ -3,20 +3,19 @@ package middleware_test
 import (
 	"net/http"
 	"net/http/httptest"
-	"os"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"github.com/matryer/is"
 
-	"goauth/internal/middleware"
-	"goauth/internal/models"
-	"goauth/internal/repository"
-	"goauth/internal/testutils"
-	h "goauth/internal/testutils"
-	"goauth/pkg/config"
+	"godiscauth/internal/middleware"
+	"godiscauth/internal/models"
+	"godiscauth/internal/repository"
+	"godiscauth/internal/testutils"
+	"godiscauth/pkg/config"
 )
 
 func TestMiddlewareAuth_RequireAuth(t *testing.T) {
@@ -27,8 +26,10 @@ func TestMiddlewareAuth_RequireAuth(t *testing.T) {
 	defer tx.Rollback()
 
 	// Setup repositories and middleware
-	authMw := middleware.NewAuthMiddleware(tx)
-	sessionRepo := repository.NewSessionRepository(tx) // Required for session management
+	authMw, err := middleware.NewAuthMiddleware(tx)
+	is.NoErr(err)
+	sessionRepo, err := repository.NewSessionRepository(tx) // Required for session management
+	is.NoErr(err)
 
 	router := gin.New()
 
@@ -41,22 +42,22 @@ func TestMiddlewareAuth_RequireAuth(t *testing.T) {
 	router.GET("/protected", authMw.RequireAuth(), testHandler)
 
 	// Register a test user
-	user, err := h.CreateTestUser(tx, "testRequireAuth@test.com")
+	email := "TestMiddlewareAuth_RequireAuth@test.com"
+	user, err := models.NewUser(email, testutils.TestingPassword)
+	is.NoErr(err)
+	err = tx.Create(user).Error
 	is.NoErr(err)
 
 	// Generate a test token
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": user.ID,
-		"exp": time.Now().Unix() + config.TokenExpiration,
-	})
-	tokenString, err := token.SignedString([]byte(os.Getenv(config.JwtCookieName)))
+	sessionID, signature, err := models.GenerateSessionID()
 	is.NoErr(err)
+	sessionToken := sessionID.String() + "." + signature
 
 	// Create a session record for this token
 	session, err := models.NewSession(
 		user.ID,
-		tokenString,
-		time.Now().Add(time.Hour*24),
+		sessionID,
+		time.Now().UTC().Add(time.Hour*24),
 	)
 	is.NoErr(err)
 
@@ -70,8 +71,8 @@ func TestMiddlewareAuth_RequireAuth(t *testing.T) {
 		is.NoErr(err)
 
 		reqWithAuth.AddCookie(&http.Cookie{
-			Name:  config.JwtCookieName,
-			Value: tokenString,
+			Name:  config.SessionCookieName,
+			Value: sessionToken,
 		})
 		rr := httptest.NewRecorder()
 		router.ServeHTTP(rr, reqWithAuth)
@@ -94,17 +95,16 @@ func TestMiddlewareAuth_RequireAuth(t *testing.T) {
 	})
 
 	t.Run("with expired token in db", func(t *testing.T) {
-		expiredToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-			"sub": user.ID,
-			"exp": time.Now().Unix() + config.TokenExpiration * 2,
-		})
-		expiredTokenString, _ := expiredToken.SignedString([]byte(os.Getenv(config.JwtCookieName)))
+		// Generate new session token with same claims
+		sessionID, signature, err := models.GenerateSessionID()
+		is.NoErr(err)
+		expiredSessionToken := sessionID.String() + "." + signature
 
 		// Create a session with an expired token
 		expiredSession, err := models.NewSession(
 			user.ID,
-			expiredTokenString,
-			time.Now().Add(-1*time.Hour),
+			sessionID,
+			time.Now().UTC().Add(-1*time.Hour),
 		)
 		is.NoErr(err)
 
@@ -114,8 +114,8 @@ func TestMiddlewareAuth_RequireAuth(t *testing.T) {
 		// Make a request with the expired token
 		req, _ := http.NewRequest("GET", "/protected", nil)
 		req.AddCookie(&http.Cookie{
-			Name:  config.JwtCookieName,
-			Value: expiredTokenString,
+			Name:  config.SessionCookieName,
+			Value: expiredSessionToken,
 		})
 
 		rr := httptest.NewRecorder()
@@ -134,8 +134,10 @@ func TestMiddlewareAuth_RequireAuth_SessionRotation(t *testing.T) {
 	defer tx.Rollback()
 
 	// Setup repositories and middleware
-	authMw := middleware.NewAuthMiddleware(tx)
-	sessionRepo := repository.NewSessionRepository(tx)
+	authMw, err := middleware.NewAuthMiddleware(tx)
+	is.NoErr(err)
+	sessionRepo, err := repository.NewSessionRepository(tx)
+	is.NoErr(err)
 
 	router := gin.New()
 
@@ -147,50 +149,53 @@ func TestMiddlewareAuth_RequireAuth_SessionRotation(t *testing.T) {
 	router.GET("/protected", authMw.RequireAuth(), testHandler)
 
 	// Register a test user
-	user, err := h.CreateTestUser(tx, "testSessionRotation@test.com")
+	email := "TestMiddlewareAuth_RequireAuth_SessionRotation@test.com"
+	user, err := models.NewUser(email, testutils.TestingPassword)
+	is.NoErr(err)
+	err = tx.Create(user).Error
 	is.NoErr(err)
 
 	// Generate a test token
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": user.ID,
-		// Set to ten minutes from now
-		"exp": time.Now().Unix() + 600,
-	})
-	tokenString, err := token.SignedString([]byte(os.Getenv(config.JwtCookieName)))
+	oldSessionID, signature, err := models.GenerateSessionID()
 	is.NoErr(err)
+	sessionToken := oldSessionID.String() + "." + signature
+
+
+
+	// Set the created_at timestamp to 6 minutes ago and expiration time to +10
+	// min to simulate a halfway expired session
+	now := time.Now().UTC().Add(-time.Minute * 6)
 
 	// Create a session record for this token
-	expiresAt := time.Now().Add(10 * time.Minute)
 	session, err := models.NewSession(
 		user.ID,
-		tokenString,
-		expiresAt,
+		oldSessionID,
+		now.Add(time.Minute * 10),
 	)
+	session.CreatedAt = now
 	is.NoErr(err)
-
-	// Set the created_at timestamp to 6 minutes ago to simulate a halfway expired session
-	session.CreatedAt = time.Now().Add(-6 * time.Minute)
 
 	// Save the session to the database
 	err = sessionRepo.CreateSession(session)
 	is.NoErr(err)
 
 	// Check that the session is in the database
-	updatedSession, err := sessionRepo.GetUnexpiredSessionByToken(tokenString)
+	updatedSession, err := sessionRepo.GetUnexpiredSessionByID(oldSessionID)
 	is.NoErr(err)
 
 	// Calculate halfway point
 	halfway := updatedSession.CreatedAt.Add(updatedSession.ExpiresAt.Sub(updatedSession.CreatedAt) / 2)
-	// Check that the current time is after the halfway point, i.e. the session is halfway expired
-	is.True(time.Now().After(halfway))
+
+	// Confirm the current time is after the halfway point, i.e. the session is halfway expired
+	is.True(time.Now().UTC().After(halfway.Add(time.Second)))
 
 	t.Run("rotates halfway expired session", func(t *testing.T) {
 		// Make a request with the token
 		reqWithAuth, err := http.NewRequest("GET", "/protected", nil)
 		is.NoErr(err)
 		reqWithAuth.AddCookie(&http.Cookie{
-			Name:  config.JwtCookieName,
-			Value: tokenString,
+			Name:  config.SessionCookieName,
+			Value: sessionToken,
 		})
 		rr := httptest.NewRecorder()
 		router.ServeHTTP(rr, reqWithAuth)
@@ -202,23 +207,31 @@ func TestMiddlewareAuth_RequireAuth_SessionRotation(t *testing.T) {
 		// Check for new token in cookie
 		var newTokenFromCookie string
 		for _, cookie := range rr.Result().Cookies() {
-			if cookie.Name == config.JwtCookieName {
+			if cookie.Name == config.SessionCookieName {
 				newTokenFromCookie = cookie.Value
 				break
 			}
 		}
 		is.True(newTokenFromCookie != "")
 
+		// New Session Token is valid
+		parts := strings.Split(newTokenFromCookie, ".")
+		is.True(len(parts) == 2)
+		newSessionID, newSignature := parts[0], parts[1]
+		parsedID, err := uuid.Parse(newSessionID)
+		is.NoErr(err)
+		is.True(models.ValidateSessionID(parsedID, newSignature))
+
 		// Check that the new token is different from the old one
 		is.True(newTokenFromCookie != "")
-		is.True(newTokenFromCookie != tokenString)
+		is.True(newTokenFromCookie != sessionToken)
 
 		// Check that the old session is deleted
-		_, err = sessionRepo.GetUnexpiredSessionByToken(tokenString)
+		_, err = sessionRepo.GetUnexpiredSessionByID(oldSessionID)
 		is.True(err != nil)
 
 		// Check that the new, rotated session is created
-		newSession, err := sessionRepo.GetUnexpiredSessionByToken(newTokenFromCookie)
+		newSession, err := sessionRepo.GetUnexpiredSessionByID(parsedID)
 		is.NoErr(err)
 		is.Equal(user.ID, newSession.UserID)
 
@@ -228,6 +241,6 @@ func TestMiddlewareAuth_RequireAuth_SessionRotation(t *testing.T) {
 		// Rotated session should have the same user ID
 		is.Equal(user.ID, newSession.UserID)
 		// Rotated session should have a different token
-		is.True(newSession.Token != tokenString)
+		is.True(newSession.ID != oldSessionID)
 	})
 }
