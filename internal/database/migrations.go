@@ -4,7 +4,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 
-	"goauth/internal/models"
+	"godiscauth/internal/models"
 )
 
 func Migrate(db *gorm.DB) {

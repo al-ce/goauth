@@ -7,7 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"goauth/internal/testutils"
+	"godiscauth/internal/testutils"
 )
 
 type Request struct {

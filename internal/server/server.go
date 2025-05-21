@@ -6,10 +6,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
-	"goauth/internal/handlers"
-	"goauth/internal/middleware"
-	"goauth/internal/repository"
-	"goauth/internal/services"
+	"godiscauth/internal/handlers"
+	"godiscauth/internal/middleware"
+	"godiscauth/internal/repository"
+	"godiscauth/internal/services"
+	"godiscauth/pkg/apperrors"
+	"godiscauth/pkg/config"
 )
 
 type APIServer struct {

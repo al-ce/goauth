@@ -9,11 +9,10 @@ import (
 	"github.com/matryer/is"
 	"gorm.io/gorm"
 
-	"goauth/internal/models"
-	"goauth/internal/repository"
-	"goauth/internal/testutils"
-	h "goauth/internal/testutils"
-	"goauth/pkg/apperrors"
+	"godiscauth/internal/models"
+	"godiscauth/internal/repository"
+	"godiscauth/internal/testutils"
+	"godiscauth/pkg/apperrors"
 )
 
 func TestSessionRepository_CreateSession(t *testing.T) {

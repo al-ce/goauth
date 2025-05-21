@@ -8,8 +8,8 @@ import (
 	passwordvalidator "github.com/wagslane/go-password-validator"
 	"golang.org/x/crypto/bcrypt"
 
-	"goauth/pkg/apperrors"
-	"goauth/pkg/config"
+	"godiscauth/pkg/apperrors"
+	"godiscauth/pkg/config"
 )
 
 type User struct {

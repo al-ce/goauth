@@ -7,8 +7,8 @@ import (
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 
-	"goauth/internal/models"
-	"goauth/pkg/apperrors"
+	"godiscauth/internal/models"
+	"godiscauth/pkg/apperrors"
 )
 
 type SessionRepository struct {

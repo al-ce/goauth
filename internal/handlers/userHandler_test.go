@@ -12,10 +12,14 @@ import (
 	"github.com/google/uuid"
 	"github.com/matryer/is"
 
-	"goauth/internal/models"
-	"goauth/internal/server"
-	"goauth/internal/testutils"
-	"goauth/pkg/config"
+	"godiscauth/internal/handlers"
+	"godiscauth/internal/models"
+	"godiscauth/internal/repository"
+	"godiscauth/internal/server"
+	"godiscauth/internal/services"
+	"godiscauth/internal/testutils"
+	"godiscauth/pkg/apperrors"
+	"godiscauth/pkg/config"
 )
 
 func TestUserHandler_RegisterUser(t *testing.T) {

@@ -6,10 +6,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/matryer/is"
 
-	"goauth/internal/models"
-	"goauth/internal/repository"
-	"goauth/internal/testutils"
-	"goauth/pkg/apperrors"
+	"godiscauth/internal/models"
+	"godiscauth/internal/repository"
+	"godiscauth/internal/testutils"
+	"godiscauth/pkg/apperrors"
+	"godiscauth/pkg/config"
 )
 
 func TestUserRepository_RegisterUser(t *testing.T) {

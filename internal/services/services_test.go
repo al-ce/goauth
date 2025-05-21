@@ -7,7 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"goauth/internal/testutils"
+	"godiscauth/internal/testutils"
 )
 
 func TestMain(m *testing.M) {

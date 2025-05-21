@@ -12,10 +12,12 @@ import (
 
 	"goauth/internal/models"
 	"goauth/internal/repository"
-	"goauth/internal/services"
-	"goauth/internal/testutils"
-	"goauth/pkg/apperrors"
-	"goauth/pkg/config"
+	"godiscauth/internal/models"
+	"godiscauth/internal/repository"
+	"godiscauth/internal/services"
+	"godiscauth/internal/testutils"
+	"godiscauth/pkg/apperrors"
+	"godiscauth/pkg/config"
 )
 
 func TestUserService_RegisterUser(t *testing.T) {

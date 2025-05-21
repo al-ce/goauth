@@ -5,9 +5,10 @@ import (
 
 	"github.com/matryer/is"
 
-	"goauth/internal/database"
+	"godiscauth/internal/database"
 )
 
+// TestConnectToDB tests the connection to the database.
 func TestConnectToDB(t *testing.T) {
 	is := is.New(t)
 	testDB := database.NewDB()

@@ -7,11 +7,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/matryer/is"
 
-	"goauth/internal/models"
-	"goauth/internal/repository"
-	"goauth/internal/testutils"
-	h "goauth/internal/testutils"
-	"goauth/pkg/apperrors"
+	"godiscauth/internal/models"
+	"godiscauth/internal/testutils"
+	"godiscauth/pkg/apperrors"
 )
 
 func TestSessionModel_NewSession(t *testing.T) {

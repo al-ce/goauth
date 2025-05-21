@@ -6,8 +6,9 @@ import (
 	"github.com/matryer/is"
 	"golang.org/x/crypto/bcrypt"
 
-	"goauth/internal/models"
-	"goauth/pkg/config"
+	"godiscauth/internal/models"
+	"godiscauth/internal/testutils"
+	"godiscauth/pkg/apperrors"
 )
 
 func TestNewUser(t *testing.T) {

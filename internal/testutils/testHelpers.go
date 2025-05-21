@@ -17,9 +17,8 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
-	"goauth/internal/database"
-	"goauth/internal/models"
-	"goauth/pkg/config"
+	"godiscauth/internal/database"
+	"godiscauth/pkg/config"
 )
 
 func TestEnvSetup() {

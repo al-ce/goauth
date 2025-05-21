@@ -6,6 +6,8 @@ import (
 	"github.com/rs/zerolog/log"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+
+	"godiscauth/pkg/config"
 )
 
 func NewDB() *gorm.DB {

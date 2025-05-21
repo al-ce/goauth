@@ -8,9 +8,9 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	"goauth/internal/models"
-	"goauth/pkg/apperrors"
-	"goauth/pkg/config"
+	"godiscauth/internal/models"
+	"godiscauth/pkg/apperrors"
+	"godiscauth/pkg/config"
 )
 
 type UserRepository struct {

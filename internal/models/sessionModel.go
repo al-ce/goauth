@@ -5,7 +5,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"goauth/pkg/apperrors"
+	"godiscauth/pkg/apperrors"
+	"godiscauth/pkg/config"
 )
 
 type Session struct {

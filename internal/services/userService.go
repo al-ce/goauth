@@ -10,10 +10,10 @@ import (
 	passwordvalidator "github.com/wagslane/go-password-validator"
 	"golang.org/x/crypto/bcrypt"
 
-	"goauth/internal/models"
-	"goauth/internal/repository"
-	"goauth/pkg/apperrors"
-	"goauth/pkg/config"
+	"godiscauth/internal/models"
+	"godiscauth/internal/repository"
+	"godiscauth/pkg/apperrors"
+	"godiscauth/pkg/config"
 )
 
 type UserService struct {
