@@ -202,7 +202,22 @@ func (us *UserService) UpdateUser(userID string, request map[string]any) error {
 	return us.UserRepo.UpdateUser(userID, request)
 }
 
-// RotateSession generates a new JWT token for the user and invalidates the old one
+// PermanentlyDeleteUser removes the user from the database. This is a permanent operation rather
+// than a "deletedAt" flag toggle.
+func (us *UserService) PermanentlyDeleteUser(userID string) error {
+	if userID == "" {
+		return apperrors.ErrUserIdEmpty
+	}
+	rowsAffected, err := us.UserRepo.PermanentlyDeleteUser(userID)
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return apperrors.ErrUserNotFound
+	}
+	return nil
+}
+
 // RotateSession creates a new session and replaces the old one
 func (us *UserService) RotateSession(oldToken string) (string, error) {
 	// Check session exists
