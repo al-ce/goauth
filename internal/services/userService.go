@@ -21,11 +21,18 @@ type UserService struct {
 	SessionRepo *repository.SessionRepository
 }
 
-func NewUserService(ur *repository.UserRepository, sr *repository.SessionRepository) *UserService {
+// NewUserService returns a value of type UserService
+func NewUserService(ur *repository.UserRepository, sr *repository.SessionRepository) (*UserService, error) {
+	if ur == nil {
+		return nil, apperrors.ErrUserRepoIsNil
+	}
+	if sr == nil {
+		return nil, apperrors.ErrSessionRepoIsNil
+	}
 	return &UserService{
 		UserRepo:    ur,
 		SessionRepo: sr,
-	}
+	}, nil
 }
 
 func (us *UserService) RegisterUser(email, password string) error {
