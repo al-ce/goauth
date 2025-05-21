@@ -1,18 +1,14 @@
-
 package testutils
+
 import (
-	"bytes"
-	"encoding/json"
 	"io"
 	"log"
-	"net/http"
-	"net/http/httptest"
 	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/rs/zerolog"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -21,9 +17,15 @@ import (
 	"godiscauth/pkg/config"
 )
 
+const TestingPassword = "correcthorsebatterystaple"
+
+// TestEnvSetup sets environment variables for the tests. The tests assume the
+// relevant test database has been created. See `scripts/init_testing.sql` to
+// create the testing database.
 func TestEnvSetup() {
-	os.Setenv("PORT", "3001")
-	os.Setenv("DB", "host=localhost user=goauth_test password=goauth_test dbname=goauth_test port=5432 sslmode=disable TimeZone=UTC")
+	os.Setenv(config.SessionKey, uuid.New().String())
+	os.Setenv(config.AuthServerPort, "3001")
+	os.Setenv(config.DatabaseURL, "host=localhost user=godiscauth_test password=godiscauth_test dbname=godiscauth_test port=5432 sslmode=disable TimeZone=UTC")
 
 	zerolog.SetGlobalLevel(zerolog.Disabled)
 
@@ -31,7 +33,9 @@ func TestEnvSetup() {
 	gin.DefaultWriter = io.Discard
 }
 
+// TestDBSetup sets up a test database connection.
 func TestDBSetup() *gorm.DB {
+	// Silence GORM logs for testing
 	gormLogger := logger.New(
 		log.New(io.Discard, "", log.LstdFlags),
 		logger.Config{
@@ -42,62 +46,17 @@ func TestDBSetup() *gorm.DB {
 		},
 	)
 
-	db, err := gorm.Open(postgres.Open(os.Getenv("DB")), &gorm.Config{
+	// Connect to test DB
+	db, err := gorm.Open(postgres.Open(os.Getenv(config.DatabaseURL)), &gorm.Config{
 		Logger: gormLogger,
 	})
 	if err != nil {
 		log.Fatalf("Error connecting to database: %v", err)
 	}
 
-	database.Migrate(db)
+	err = database.Migrate(db)
+	if err != nil {
+		log.Fatalf("Error migrating database: %v", err)
+	}
 	return db
-}
-
-func MakeRequest(router *gin.Engine, method, path string, body any) (*httptest.ResponseRecorder, error) {
-	jsonData, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest(
-		method,
-		path,
-		bytes.NewBuffer(jsonData),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	rr := httptest.NewRecorder()
-	router.ServeHTTP(rr, req)
-
-	return rr, nil
-}
-
-// UserHandler_RegisterUser is a helper to register a user with a valid email and password
-// for userHandler methods. For userRepository testing, ur.RegisterUser() suffices.
-func UserHandler_RegisterUser(db *gorm.DB, user *models.User) error {
-	_, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return err
-	}
-	user1, err := models.NewUser(user.Email, user.Password)
-	if err != nil {
-		return err
-	}
-	return db.Create(user1).Error
-}
-
-// Helper function to create a test user
-func CreateTestUser(db *gorm.DB, userName string) (*models.User, error) {
-	user, err := models.NewUser(userName, config.TestingPassword)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := db.Create(user).Error; err != nil {
-		return nil, err
-	}
-
-	return user, nil
 }
