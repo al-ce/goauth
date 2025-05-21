@@ -16,8 +16,11 @@ type UserHandler struct {
 	UserService *services.UserService
 }
 
-func NewUserHandler(userService *services.UserService) *UserHandler {
-	return &UserHandler{UserService: userService}
+func NewUserHandler(userService *services.UserService) (*UserHandler, error) {
+	if userService == nil {
+		return nil, apperrors.ErrUserServiceIsNil
+	}
+	return &UserHandler{UserService: userService}, nil
 }
 
 func (uh *UserHandler) RegisterUser(c *gin.Context) {
