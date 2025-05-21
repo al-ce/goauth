@@ -321,3 +321,47 @@ func (uh *UserHandler) UpdateUser(c *gin.Context) {
 		Msg("successfully updated user")
 	c.JSON(http.StatusOK, gin.H{"message": "user updated"})
 }
+
+// PermanentlyDeleteUser godoc
+// @Summary Delete a user
+// @Schemes
+// @Description Delete a user from the database permanently along with all their sessions
+// @Produce json
+// @Success 200 {object} models.MessageResponse "response with message field"
+// @Failure 401 {object} models.ErrorResponse "response with error field"
+// @Failure 500 {object} models.ErrorResponse "response with error field"
+// @Router /deleteaccount [DELETE]
+func (uh *UserHandler) PermanentlyDeleteUser(c *gin.Context) {
+	clientIP := c.ClientIP()
+	userIDStr, exists := c.Get("userID")
+	if !exists {
+		log.Info().
+			Str("clientIP", clientIP).
+			Msg("userID not found in context")
+
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{})
+		return
+	}
+	userID := userIDStr.(string)
+	err := uh.UserService.PermanentlyDeleteUser(userID)
+	if err != nil {
+		log.Info().
+			Str("clientIP", clientIP).
+			Str("error", err.Error()).
+			Msg("failed to delete user")
+
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{})
+		return
+	}
+
+	// Account no longer exists, so we can clear cookie
+	// NOTE: we are assuming the database will delete all associated sessions once the
+	// corresponding user row is deleted
+	c.SetCookie(config.SessionCookieName, "", -1, "", "", true, true)
+
+	log.Info().
+		Str("clientIP", clientIP).
+		Msg("successfully deleted user")
+
+	c.JSON(http.StatusOK, gin.H{"message": "account deleted"})
+}
