@@ -2,16 +2,33 @@ package config
 
 import "time"
 
-const JwtCookieName = "JWT_SECRET"
+// DatabaseURL is the env variable name for the database url
+const DatabaseURL = "DATABASE_URL"
 
+// AuthServerPort is the env variable name for the port to use for the auth server
+const AuthServerPort = "AUTH_SERVER_PORT"
+
+// SessionCookieName is the env variable name used to set the cookie for sessions
+const SessionKey = "DISCUSSION_APP_SESSION_KEY"
+
+// SessionCookieName is the env variable name used to set the cookie for sessions
+const SessionCookieName = "DISCUSSION_APP_SESSION_COOKIE"
+
+const CorsAllowedOrigins = "CORS_ALLOWED_ORIGINS"
+
+// SessionExpiration is the time in seconds when a token will expire
+const SessionExpiration = 3600 * 24 * 7
+
+// MinEntropyBits is the minimum number of bits of entropy required for a password.
 const MinEntropyBits = 64
 
-const TokenExpiration = 3600 * 24 * 7
-
-const TestingPassword = "correcthorsebatterystaple"
-
+// MaxLoginAttempts is the maximum number of times user can attempt to enter the correct password
+// before their account is temporarily locked
 const MaxLoginAttempts = 5
 
-const AccountLockoutLength = 60 * 15
+// AccountLockoutLength is the time in minutes that an account will be locked
+const AccountLockoutLength = 1 * time.Minute
 
-const SessionCleanupInterval = time.Hour * 1
+// AccountUnlockPeriod is how often in minutes the UnlockExpiredLocks job will
+// check for expired locked accounts to unlock
+const AccountUnlockPeriod = 5 * time.Minute
