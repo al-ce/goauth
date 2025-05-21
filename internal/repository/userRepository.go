@@ -13,14 +13,16 @@ import (
 	"godiscauth/pkg/config"
 )
 
+// UserRepository represents the entry point into the database for managing the `users` table
 type UserRepository struct {
 	DB *gorm.DB
 }
 
-func NewUserRepository(db *gorm.DB) *UserRepository {
+// NewUserRepository returns a value for the UserRepository struct
 	return &UserRepository{DB: db}
 }
 
+// RegisterUser inserts a new user into the `users` table
 func (ur *UserRepository) RegisterUser(u *models.User) error {
 	if u == nil {
 		return apperrors.ErrUserIsNil
@@ -40,6 +42,7 @@ func (ur *UserRepository) RegisterUser(u *models.User) error {
 	return err
 }
 
+// GetUserByEmail gets a user in the database by email
 func (r *UserRepository) GetUserByEmail(email string) (*models.User, error) {
 	var user models.User
 
@@ -54,6 +57,7 @@ func (r *UserRepository) GetUserByEmail(email string) (*models.User, error) {
 	return &user, nil
 }
 
+// GetUserByID gets a user in the database by user ID (uuid as string)
 func (r *UserRepository) GetUserByID(userID string) (*models.User, error) {
 	var user models.User
 	id, err := uuid.Parse(userID)
@@ -72,11 +76,13 @@ func (r *UserRepository) GetUserByID(userID string) (*models.User, error) {
 	return &user, nil
 }
 
+// PermanentlyDeleteUser removes existing users from the database by ID
 func (r *UserRepository) PermanentlyDeleteUser(userID string) (int64, error) {
 	result := r.DB.Unscoped().Where("id = ?", userID).Delete(&models.User{})
 	return result.RowsAffected, result.Error
 }
 
+// UpdateUser updates a user in the database by usedID, expecting a decoded request to pass updated fields
 func (r *UserRepository) UpdateUser(userID string, request map[string]any) error {
 	var exists bool
 	r.DB.Model(&models.User{}).Select("1").Where("id = ?", userID).First(&exists)

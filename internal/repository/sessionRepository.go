@@ -11,14 +11,16 @@ import (
 	"godiscauth/pkg/apperrors"
 )
 
+// SessionRepository represents the entry point into the database for managing
 type SessionRepository struct {
 	DB *gorm.DB
 }
 
-func NewSessionRepository(db *gorm.DB) *SessionRepository {
+// NewSessionRepository returns a value for the SessionRepository struct
 	return &SessionRepository{DB: db}
 }
 
+// CreateSession inserts a new session into the `sessions` table
 func (sr *SessionRepository) CreateSession(session *models.Session) error {
 	if session == nil {
 		return apperrors.ErrSessionIsNil
@@ -36,7 +38,7 @@ func (sr *SessionRepository) CreateSession(session *models.Session) error {
 	return sr.DB.Create(session).Error
 }
 
-func (sr *SessionRepository) GetUnexpiredSessionByToken(token string) (*models.Session, error) {
+// GetUnexpiredSessionByID retrieves a session from the database by sessionID, but ignores any expired sessions
 	if token == "" {
 		return nil, apperrors.ErrTokenIsEmpty
 	}
@@ -48,7 +50,7 @@ func (sr *SessionRepository) GetUnexpiredSessionByToken(token string) (*models.S
 	return &session, nil
 }
 
-func (sr *SessionRepository) DeleteSessionByToken(token string) error {
+// DeleteSessionByID deletes a single session from the database by sessionID
 	if token == "" {
 		return apperrors.ErrTokenIsEmpty
 	}
@@ -59,7 +61,7 @@ func (sr *SessionRepository) DeleteSessionByToken(token string) error {
 	return result.Error
 }
 
-func (sr *SessionRepository) DeleteSessionByUserID(userID string) error {
+// DeleteSessionsByUserID deletes all sessions associated with a userID from the database
 	if userID == "" {
 		return apperrors.ErrUserIdEmpty
 	}
