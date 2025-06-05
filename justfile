@@ -23,10 +23,14 @@ TEST_PASS := "godiscauth_test"
 
 # pg url
 
-HOST := "localhost"
 DB_PORT := "5432"
-PORT := "3001"
 DRIVER := "postgres"
+
+# Service url
+
+HOST := "localhost"
+PORT := "3001"
+SERVICE_URL := "localhost:3001"
 
 # Scripts
 
@@ -44,6 +48,17 @@ default:
 [group('authapi')]
 ping:
     curl -X 'GET' -v -s -A '{{ PROJECT }} justfile' 'http://localhost:{{ PORT }}/ping'
+
+# #############################################################################
+# Direct requests/queries
+# #############################################################################
+
+# Make an http request
+[group('exec')]
+request endpoint method data="":
+    curl -s --request "$(echo {{ method }} | tr [:lower:] [:upper:])"  \
+        --data "{{ data }}" \
+        --header 'Content-Type: application/json' {{ SERVICE_URL }}/{{ endpoint }}
 
 # #############################################################################
 # Development
