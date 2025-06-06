@@ -30,9 +30,6 @@ func TestUserRepository_NewUserRepository(t *testing.T) {
 	})
 
 	t.Run("returns err with nil db", func(t *testing.T) {
-		tx := testDB.Begin()
-		defer tx.Rollback()
-
 		ur, err := repository.NewUserRepository(nil)
 		is.Equal(ur, nil)
 		is.Equal(err, apperrors.ErrDatabaseIsNil)
