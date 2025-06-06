@@ -20,6 +20,8 @@ DEV_PASS := "godiscauth"
 TEST_DB := "godiscauth_test"
 TEST_USER := "godiscauth_test"
 TEST_PASS := "godiscauth_test"
+def_user := "bob@bob.com"
+def_pw := "89532c353a03603b48b2dfe3ea21738b63560be53f63d551b1587cb75f997b36"
 
 # pg url
 
@@ -37,17 +39,12 @@ SERVICE_URL := "localhost:3001"
 INITDEVDB := "scripts/init_dev.sql"
 INITTESTDB := "scripts/init_testing.sql"
 
+# Other
+
+cookies_dir := "/tmp/goauth_curl_justfile_cookies/"
+
 default:
     @just --list
-
-# #############################################################################
-# API endpoints
-# #############################################################################
-
-# send GET request to ping endpoint
-[group('authapi')]
-ping:
-    curl -X 'GET' -v -s -A '{{ PROJECT }} justfile' 'http://localhost:{{ PORT }}/ping'
 
 # #############################################################################
 # Direct requests/queries
@@ -55,10 +52,64 @@ ping:
 
 # Make an http request
 [group('exec')]
-request endpoint method data="":
+request endpoint method data="" cookies_id="nil":
+    mkdir -p {{ cookies_dir }}
+    # Get cookies if they exist, also write cookies
     curl -s --request "$(echo {{ method }} | tr [:lower:] [:upper:])"  \
         --data "{{ data }}" \
-        --header 'Content-Type: application/json' {{ SERVICE_URL }}/{{ endpoint }}
+        --header 'Content-Type: application/json' {{ SERVICE_URL }}/{{ endpoint }} \
+        -b {{ cookies_dir }}{{ cookies_id }}      \
+        -c {{ cookies_dir }}{{ cookies_id }} | jq
+
+# #############################################################################
+# API endpoints
+# #############################################################################
+
+# `goauth/ping`
+[group('authapi')]
+ping:
+    curl -X 'GET' -v -s -A '{{ PROJECT }} justfile' 'http://localhost:{{ PORT }}/ping'
+
+# `goauth/register`
+[group('authapi')]
+register email=(def_user) pw=(def_pw):
+    just request register \
+    POST '{\"email\":\"{{ email }}\", \"password\":\"{{ pw }}\"}'
+
+# `goauth/login`
+[group('authapi')]
+login email=(def_user) pw=(def_pw):
+    just request login \
+    POST '{\"email\":\"{{ email }}\", \"password\":\"{{ pw }}\"}' \
+    {{ email }}
+
+# `goauth/whoami`
+[group('authapi')]
+whoami email=(def_user):
+    just request whoami GET "{}" {{ email }}
+
+# `goauth/logout`
+[group('authapi')]
+logout email=(def_user):
+    just request logout POST "{}" {{ email }}
+
+# `goauth/logouteverywhere`
+[group('authapi')]
+logouteverywhere email=(def_user):
+    just request logouteverywhere POST "{}" {{ email }}
+
+# `goauth/updateuser`
+[group('authapi')]
+updateuser email=(def_user) new_email=(def_user) new_pw=(def_pw):
+    just request updateuser POST \
+        '{\"email\":\"{{ new_email }}\", \"password\":\"{{ new_pw }}\"}' \
+        {{ email }}
+
+# `goauth/deleteaccount`
+[group('authapi')]
+deleteaccount email=(def_user):
+    just request deleteaccount DELETE "{}" {{ email }} && \\
+    rm /tmp/goauth_curl_justfile_cookies/{{ email }} # clean up cookie
 
 # #############################################################################
 # Development
