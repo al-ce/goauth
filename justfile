@@ -131,6 +131,7 @@ watch:
 [group('dev')]
 test path="":
     #!/usr/bin/env sh
+    just init test
     if [ -z "{{ path }}" ]; then
         go test -v -json ./... | gotestfmt -hide successful-tests
     else
