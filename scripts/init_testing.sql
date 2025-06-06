@@ -1,5 +1,7 @@
 -- init_db.sql
 
+DROP DATABASE IF EXISTS godiscauth_test;
+
 DO
 $do$
 BEGIN
