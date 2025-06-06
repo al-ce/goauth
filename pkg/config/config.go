@@ -9,7 +9,7 @@ const DatabaseURL = "DATABASE_URL"
 const AuthServerPort = "AUTH_SERVER_PORT"
 
 // SessionCookieName is the env variable name used to set the cookie for sessions
-const SessionKey = "DISCUSSION_APP_SESSION_KEY"
+const SessionKey = "SESSION_KEY"
 
 // SessionCookieName is the env variable name used to set the cookie for sessions
 const SessionCookieName = "DISCUSSION_APP_SESSION_COOKIE"

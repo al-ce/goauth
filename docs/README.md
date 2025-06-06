@@ -51,7 +51,7 @@ The `auth` module expects the following environment variables to be set:
 
 - `DATABASE_URL`: The URL of the database to connect to
 - `AUTH_SERVER_PORT`: The port to run the http server on
-- `DISCUSSION_APP_SESSION_KEY`: The secret key to encrypt the session id
+- `SESSION_KEY`: The secret key to encrypt the session id
 - `CORS_ALLOWED_ORIGINS`: comma separated string of allowed origins e.g. `"http://localhost:5173,http://localhost:4173"`
 
 

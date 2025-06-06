@@ -119,7 +119,7 @@ deleteaccount email=(def_user):
 [group('dev')]
 watch:
     #!/usr/bin/env sh
-    export DISCUSSION_APP_SESSION_KEY=$(date | sha256sum | cut -d' ' -f1)
+    export SESSION_KEY=$(date | sha256sum | cut -d' ' -f1)
     export AUTH_SERVER_PORT={{ PORT }}
     export DATABASE_URL="{{ DRIVER }}://{{ DEV_USER }}:{{ DEV_PASS }}@{{ HOST }}:{{ DB_PORT }}/{{ DEV_DB }}"
     echo "Using DB: $DB"
