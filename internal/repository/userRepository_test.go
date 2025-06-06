@@ -43,43 +43,39 @@ func TestUserRepository_RegisterUser(t *testing.T) {
 
 	// Validates user before registration
 	t.Run("fails on nil user", func(t *testing.T) {
-		ur, err := setupUserRepository(t)
-		is.NoErr(err)
+		ur := setupUserRepository(t)
 
-		err = ur.RegisterUser(nil)
+		err := ur.RegisterUser(nil)
 		is.Equal(err, apperrors.ErrUserIsNil)
 	})
 	t.Run("fails on missing email", func(t *testing.T) {
-		ur, err := setupUserRepository(t)
-		is.NoErr(err)
+		ur := setupUserRepository(t)
 
 		user := &models.User{
 			Password: "password",
 		}
-		err = ur.RegisterUser(user)
+		err := ur.RegisterUser(user)
 		is.Equal(err, apperrors.ErrEmailIsEmpty)
 	})
 	t.Run("fails on missing password", func(t *testing.T) {
-		ur, err := setupUserRepository(t)
-		is.NoErr(err)
+		ur := setupUserRepository(t)
 
 		user := &models.User{
 			Email: "testRegisterUser@test.com",
 		}
-		err = ur.RegisterUser(user)
+		err := ur.RegisterUser(user)
 		is.Equal(err, apperrors.ErrPasswordIsEmpty)
 	})
 
 	// Inserts user into db with complete User value
 	t.Run("registers user", func(t *testing.T) {
-		ur, err := setupUserRepository(t)
-		is.NoErr(err)
+		ur := setupUserRepository(t)
 
 		user := &models.User{
 			Email:    "testRegisterUser@test.com",
 			Password: "password",
 		}
-		err = ur.RegisterUser(user)
+		err := ur.RegisterUser(user)
 		is.NoErr(err)
 
 		// Lookup expected user in the db
@@ -104,8 +100,7 @@ func TestUserRepository_GetUserByEmail(t *testing.T) {
 
 	// Error on empty email
 	t.Run("empty email", func(t *testing.T) {
-		ur, err := setupUserRepository(t)
-		is.NoErr(err)
+		ur := setupUserRepository(t)
 
 		dbUser, err := ur.GetUserByEmail("")
 		is.Equal(dbUser, nil)
@@ -114,8 +109,7 @@ func TestUserRepository_GetUserByEmail(t *testing.T) {
 
 	// Error on non-existing user lookup
 	t.Run("non-existing user", func(t *testing.T) {
-		ur, err := setupUserRepository(t)
-		is.NoErr(err)
+		ur := setupUserRepository(t)
 
 		dbUser, err := ur.GetUserByEmail("doesNotExist@test.com")
 		is.Equal(dbUser, nil)
@@ -124,15 +118,14 @@ func TestUserRepository_GetUserByEmail(t *testing.T) {
 
 	// Success on existing-user lookup
 	t.Run("existing user", func(t *testing.T) {
-		ur, err := setupUserRepository(t)
-		is.NoErr(err)
+		ur := setupUserRepository(t)
 
 		// Register a user to look up
 		user := &models.User{
 			Email:    "testGetUserByEmail@test.com",
 			Password: "password",
 		}
-		err = ur.RegisterUser(user)
+		err := ur.RegisterUser(user)
 		is.NoErr(err)
 
 		dbUser, err := ur.GetUserByEmail(user.Email)
@@ -148,8 +141,7 @@ func TestUserRepository_GetUserByEmail(t *testing.T) {
 func TestUserRepository_GetUserByID(t *testing.T) {
 	is := is.New(t)
 
-	ur, err := setupUserRepository(t)
-	is.NoErr(err)
+	ur := setupUserRepository(t)
 
 	email := "testGetUserByID@test.com"
 
@@ -158,7 +150,7 @@ func TestUserRepository_GetUserByID(t *testing.T) {
 		Email:    email,
 		Password: testutils.TestingPassword,
 	}
-	err = ur.RegisterUser(user)
+	err := ur.RegisterUser(user)
 	is.NoErr(err)
 
 	// Error on empty user ID
@@ -193,8 +185,7 @@ func TestUserRepository_GetUserByID(t *testing.T) {
 func TestUserRepository_PermanentlyDeleteUser(t *testing.T) {
 	is := is.New(t)
 
-	ur, err := setupUserRepository(t)
-	is.NoErr(err)
+	ur := setupUserRepository(t)
 
 	// Error on empty user ID
 	t.Run("empty user ID", func(t *testing.T) {
@@ -220,7 +211,7 @@ func TestUserRepository_PermanentlyDeleteUser(t *testing.T) {
 			Email:    email,
 			Password: testutils.TestingPassword,
 		}
-		err = ur.RegisterUser(user)
+		err := ur.RegisterUser(user)
 		is.NoErr(err)
 		rowsAffected, err := ur.PermanentlyDeleteUser(user.ID.String())
 		is.Equal(rowsAffected, int64(1))
@@ -238,26 +229,23 @@ func TestUserRepository_UpdateUser(t *testing.T) {
 
 	// Error on empty user ID
 	t.Run("empty user ID", func(t *testing.T) {
-		ur, err := setupUserRepository(t)
-		is.NoErr(err)
+		ur := setupUserRepository(t)
 
-		err = ur.UpdateUser("", map[string]any{})
+		err := ur.UpdateUser("", map[string]any{})
 		is.Equal(err, apperrors.ErrUserIdEmpty)
 	})
 
 	// Error on non-existent user
 	t.Run("non-existent user", func(t *testing.T) {
-		ur, err := setupUserRepository(t)
-		is.NoErr(err)
+		ur := setupUserRepository(t)
 
-		err = ur.UpdateUser("doesNotExist", map[string]any{})
+		err := ur.UpdateUser("doesNotExist", map[string]any{})
 		is.Equal(err, apperrors.ErrUserNotFound)
 	})
 
 	// Can update user
 	t.Run("can update user", func(t *testing.T) {
-		ur, err := setupUserRepository(t)
-		is.NoErr(err)
+		ur := setupUserRepository(t)
 
 		// Register a user to update
 		email := "testUpdateUser@test.com"
@@ -265,7 +253,7 @@ func TestUserRepository_UpdateUser(t *testing.T) {
 			Email:    email,
 			Password: testutils.TestingPassword,
 		}
-		err = ur.RegisterUser(user)
+		err := ur.RegisterUser(user)
 		is.NoErr(err)
 
 		// Update user
@@ -309,26 +297,23 @@ func TestUserRepository_IncrementFailedLogins(t *testing.T) {
 
 	// Error on empty user ID
 	t.Run("empty user ID", func(t *testing.T) {
-		ur, err := setupUserRepository(t)
-		is.NoErr(err)
+		ur := setupUserRepository(t)
 
-		err = ur.IncrementFailedLogins("")
+		err := ur.IncrementFailedLogins("")
 		is.Equal(err, apperrors.ErrUserIdEmpty)
 	})
 
 	// Error on non-existing user lookup
 	t.Run("fails on non-existent user", func(t *testing.T) {
-		ur, err := setupUserRepository(t)
-		is.NoErr(err)
+		ur := setupUserRepository(t)
 
-		err = ur.IncrementFailedLogins(uuid.New().String())
+		err := ur.IncrementFailedLogins(uuid.New().String())
 		is.Equal(err, apperrors.ErrUserNotFound)
 	})
 
 	// Increments failed login attempts on successful lookup
 	t.Run("increments FailedLoginAttempts", func(t *testing.T) {
-		ur, err := setupUserRepository(t)
-		is.NoErr(err)
+		ur := setupUserRepository(t)
 
 		// Register a user to fail logins with
 		email := "testHandleFailedLogin@test.com"
@@ -336,7 +321,7 @@ func TestUserRepository_IncrementFailedLogins(t *testing.T) {
 			Email:    email,
 			Password: testutils.TestingPassword,
 		}
-		err = ur.RegisterUser(user)
+		err := ur.RegisterUser(user)
 		is.NoErr(err)
 
 		// Increment login attempts
@@ -355,8 +340,7 @@ func TestUserRepository_LockAccount(t *testing.T) {
 	is := is.New(t)
 
 	t.Run("locks on existing user", func(t *testing.T) {
-		ur, err := setupUserRepository(t)
-		is.NoErr(err)
+		ur := setupUserRepository(t)
 
 		// Register test user
 		email := "testLockAccount@test.com"
@@ -364,7 +348,7 @@ func TestUserRepository_LockAccount(t *testing.T) {
 			Email:    email,
 			Password: testutils.TestingPassword,
 		}
-		err = ur.RegisterUser(user)
+		err := ur.RegisterUser(user)
 		is.NoErr(err)
 
 		beforeLock := time.Now().UTC()
@@ -387,10 +371,9 @@ func TestUserRepository_LockAccount(t *testing.T) {
 	})
 
 	t.Run("fails on non-existent user", func(t *testing.T) {
-		ur, err := setupUserRepository(t)
-		is.NoErr(err)
+		ur := setupUserRepository(t)
 
-		err = ur.LockAccount(uuid.New().String())
+		err := ur.LockAccount(uuid.New().String())
 		is.Equal(err, apperrors.ErrUserNotFound)
 	})
 }
@@ -399,8 +382,7 @@ func TestUserRepository_UnlockAccount(t *testing.T) {
 	is := is.New(t)
 
 	t.Run("unlocks locked user", func(t *testing.T) {
-		ur, err := setupUserRepository(t)
-		is.NoErr(err)
+		ur := setupUserRepository(t)
 
 		// Register test user
 		email := "testUnlockAccount@test.com"
@@ -408,7 +390,7 @@ func TestUserRepository_UnlockAccount(t *testing.T) {
 			Email:    email,
 			Password: testutils.TestingPassword,
 		}
-		err = ur.RegisterUser(user)
+		err := ur.RegisterUser(user)
 		is.NoErr(err)
 
 		// Lock account
@@ -439,8 +421,7 @@ func TestUserRepository_UnlockAllExpiredLocks(t *testing.T) {
 	is := is.New(t)
 
 	t.Run("unlocks all locked users", func(t *testing.T) {
-		ur, err := setupUserRepository(t)
-		is.NoErr(err)
+		ur := setupUserRepository(t)
 		// Register test users
 		var users []*models.User
 		for i := range 10 {
@@ -449,7 +430,7 @@ func TestUserRepository_UnlockAllExpiredLocks(t *testing.T) {
 				Email:    email,
 				Password: testutils.TestingPassword,
 			}
-			err = ur.RegisterUser(user)
+			err := ur.RegisterUser(user)
 			is.NoErr(err)
 			// Lock account manually, setting expiration date to a past time
 
@@ -490,10 +471,16 @@ func TestUserRepository_UnlockAllExpiredLocks(t *testing.T) {
 	})
 }
 
-func setupUserRepository(t *testing.T) (*repository.UserRepository, error) {
+func setupUserRepository(t *testing.T) (*repository.UserRepository) {
+	t.Helper()
+
 	testDB := testutils.TestDBSetup()
-	ur, err := repository.NewUserRepository(testDB)
 	tx := testDB.Begin()
 	t.Cleanup(func() { tx.Rollback() })
-	return ur, err
+
+	ur, err := repository.NewUserRepository(tx)
+	if err != nil {
+		t.Fatalf("failed to create user repository: %v", err)
+	}
+	return ur
 }
