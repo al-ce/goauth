@@ -25,7 +25,7 @@ const TestingPassword = "correcthorsebatterystaple"
 func TestEnvSetup() {
 	os.Setenv(config.SessionKey, uuid.New().String())
 	os.Setenv(config.AuthServerPort, "3001")
-	os.Setenv(config.DatabaseURL, "host=localhost user=godiscauth_test password=godiscauth_test dbname=godiscauth_test port=5432 sslmode=disable TimeZone=UTC")
+	os.Setenv(config.DatabaseURL, "host=localhost user=goauth_test password=goauth_test dbname=goauth_test port=5432 sslmode=disable TimeZone=UTC")
 
 	zerolog.SetGlobalLevel(zerolog.Disabled)
 
