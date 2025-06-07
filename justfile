@@ -6,8 +6,16 @@
 # - docker or podman
 # - psql https://archlinux.org/packages/?name=postgresql
 # - rainfrog https://github.com/achristmascarl/rainfrog
-# - gotestfmt https://github.com/GoTestTools/gotestfmt
 # - CompileDaemon https://github.com/githubnemo/CompileDaemon
+
+# (OPTIONAL) a go-test pretty printer (will otherwise fallback to `cat`) e.g.
+# - tparse https://github.com/mfridman/tparse
+# - gotestsum https://github.com/gotestyourself/gotestsum
+# - gotestfmt https://github.com/GoTestTools/gotestfmt
+# Set this here:
+test_parser := ```
+    which tparse || which gotestsum || which gotestfmt || which cat
+```
 
 set quiet := true
 
@@ -143,9 +151,9 @@ test path="":
     export DATABASE_URL="{{ DRIVER }}://{{ TEST_USER }}:{{ TEST_PASS }}@{{ HOST }}:{{ TEST_DB_PORT }}/{{ TEST_DB }}"
     go clean -testcache | exit 1
     if [ -z "{{ path }}" ]; then
-        go test -p 1 -v -json ./... | gotestfmt
+        go test -p 1 -v -cover -json ./... | {{ test_parser }}
     else
-        go test -v -json ./internal/{{ path }} | gotestfmt -hide successful-tests
+        go test -v -cover -json ./internal/{{ path }} | {{ test_parser }}
     fi
     TEST_RESULT=$?
     just stop-test-db
