@@ -20,12 +20,15 @@ import (
 const TestingPassword = "correcthorsebatterystaple"
 
 // TestEnvSetup sets environment variables for the tests. The tests assume the
-// relevant test database has been created. See `scripts/init_testing.sql` to
-// create the testing database.
+// relevant test database has been created and that a postgres service is
+// running on port 5433 (e.g. a Docker container with port mapping 5433:5432)
+// See `scripts/init_testing.sql` to create the testing database.
 func TestEnvSetup() {
 	os.Setenv(config.SessionKey, uuid.New().String())
 	os.Setenv(config.AuthServerPort, "3001")
-	os.Setenv(config.DatabaseURL, "host=localhost user=goauth_test password=goauth_test dbname=goauth_test port=5432 sslmode=disable TimeZone=UTC")
+
+	// Use port 5433
+	os.Setenv(config.DatabaseURL, "host=localhost user=goauth_test password=goauth_test dbname=goauth_test port=5433 sslmode=disable TimeZone=UTC")
 
 	zerolog.SetGlobalLevel(zerolog.Disabled)
 

@@ -3,6 +3,7 @@
 #
 # Dependencies:
 # - just https://github.com/casey/just?tab=readme-ov-file
+# - docker or podman
 # - psql https://archlinux.org/packages/?name=postgresql
 # - rainfrog https://github.com/achristmascarl/rainfrog
 # - gotestfmt https://github.com/GoTestTools/gotestfmt
@@ -23,9 +24,15 @@ TEST_PASS := "goauth_test"
 def_user := "bob@bob.com"
 def_pw := "89532c353a03603b48b2dfe3ea21738b63560be53f63d551b1587cb75f997b36"
 
+# Docker container names
+
+DEV_CONTAINER := "goauth-dev-db"
+TEST_CONTAINER := "goauth-test-db"
+
 # pg url
 
-DB_PORT := "5432"
+DEV_DB_PORT := "5434"
+TEST_DB_PORT := "5433"
 DRIVER := "postgres"
 
 # Service url
@@ -108,7 +115,7 @@ updateuser email=(def_user) new_email=(def_user) new_pw=(def_pw):
 # `goauth/deleteaccount`
 [group('authapi')]
 deleteaccount email=(def_user):
-    just request deleteaccount DELETE "{}" {{ email }} && \\
+    just request deleteaccount DELETE "{}" {{ email }} && \
     rm /tmp/goauth_curl_justfile_cookies/{{ email }} # clean up cookie
 
 # #############################################################################
@@ -122,8 +129,8 @@ watch:
     just init
     export SESSION_KEY=$(date | sha256sum | cut -d' ' -f1)
     export AUTH_SERVER_PORT={{ PORT }}
-    export DATABASE_URL="{{ DRIVER }}://{{ DEV_USER }}:{{ DEV_PASS }}@{{ HOST }}:{{ DB_PORT }}/{{ DEV_DB }}"
-    echo "Using DB: $DB"
+    export DATABASE_URL="{{ DRIVER }}://{{ DEV_USER }}:{{ DEV_PASS }}@{{ HOST }}:{{ DEV_DB_PORT }}/{{ DEV_DB }}"
+    echo "Using DB: $DATABASE_URL"
     CompileDaemon \
     --build="go build -o {{ PROJECT }} ./main.go" \
     --command="./{{ PROJECT }}"
@@ -133,56 +140,54 @@ watch:
 test path="":
     #!/usr/bin/env sh
     just init test
+    export DATABASE_URL="{{ DRIVER }}://{{ TEST_USER }}:{{ TEST_PASS }}@{{ HOST }}:{{ TEST_DB_PORT }}/{{ TEST_DB }}"
+    go clean -testcache | exit 1
     if [ -z "{{ path }}" ]; then
         go test -v -json ./... | gotestfmt -hide successful-tests
     else
         go test -v -json ./internal/{{ path }} | gotestfmt -hide successful-tests
     fi
+    TEST_RESULT=$?
+    just stop-test-db
+    exit $TEST_RESULT
 
-# Initialize auth development database
+# Initialize database with schema
 [group('dev')]
 init env="":
     #!/usr/bin/env sh
     if [ "{{ env }}" = "test" ]; then
-        sudo -u postgres psql -f {{ INITTESTDB }}
+        # Ensure the test-db is stopped and removed for a clean start
+        just stop-test-db
+        just start-test-db
+        PGHOST=localhost PGPORT={{ TEST_DB_PORT }} PGUSER={{ TEST_USER }} PGPASSWORD={{ TEST_PASS }} \
+        psql -f {{ INITTESTDB }}
     else
-        sudo -u postgres psql -f {{ INITDEVDB }}
+        # dev-db should persist until stopped
+        just start-dev-db
+        PGHOST=localhost PGPORT={{ DEV_DB_PORT }} PGUSER={{ DEV_USER }} PGPASSWORD={{ DEV_PASS }} \
+        psql -f {{ INITDEVDB }}
     fi
-
-# Drop database
-[group('dev')]
-drop env="":
-    #!/usr/bin/env sh
-    if [ "{{ env }}" = "test" ]; then
-        sudo -u postgres psql -c "DROP DATABASE IF EXISTS {{ TEST_DB }};"
-    else
-        sudo -u postgres psql -c "DROP DATABASE IF EXISTS {{ DEV_DB }};"
-    fi
-
-# Reset database
-[group('dev')]
-reset env="":
-    just drop {{ env }}
-    just init {{ env }}
 
 # Open database with rainfrog
 [group('dev')]
 rain env="":
     #!/usr/bin/env sh
     if [ "{{ env }}" = "test" ]; then
+        just start-test-db
         rainfrog \
           --driver="{{ DRIVER }}" \
           --username="{{ TEST_USER }}" \
           --host="{{ HOST }}" \
-          --port="{{ DB_PORT }}" \
+          --port="{{ TEST_DB_PORT }}" \
           --database="{{ TEST_DB }}" \
           --password="{{ TEST_PASS }}"
     else
+        just start-dev-db
         rainfrog \
           --driver="{{ DRIVER }}" \
           --username="{{ DEV_USER }}" \
           --host="{{ HOST }}" \
-          --port="{{ DB_PORT }}" \
+          --port="{{ DEV_DB_PORT }}" \
           --database="{{ DEV_DB }}" \
           --password="{{ DEV_PASS }}"
     fi
@@ -192,7 +197,98 @@ rain env="":
 pg env="":
     #!/usr/bin/env sh
     if [ "{{ env }}" = "test" ]; then
-        psql -h {{ HOST }} -p {{ DB_PORT }} -U {{ TEST_USER }} {{ TEST_DB }}
+        just start-test-db
+        PGHOST={{ HOST }} PGPORT={{ TEST_DB_PORT }} PGUSER={{ TEST_USER }} PGPASSWORD={{ TEST_PASS }} \
+        psql {{ TEST_DB }}
     else
-        psql -h {{ HOST }} -p {{ DB_PORT }} -U {{ DEV_USER }} {{ DEV_DB }}
+        just start-dev-db
+        PGHOST={{ HOST }} PGPORT={{ DEV_DB_PORT }} PGUSER={{ DEV_USER }} PGPASSWORD={{ DEV_PASS }} \
+        psql {{ DEV_DB }}
+    fi
+
+# #############################################################################
+# Docker Database Management
+# #############################################################################
+
+# Start development database container
+[group('db')]
+start-dev-db:
+    #!/usr/bin/env sh
+    if ! docker ps --format json | jq -r .Names | grep -q "^ DEV_CONTAINER $"; then
+        echo "Starting development database..."
+        docker run --rm -d --name {{ DEV_CONTAINER }} \
+            -e POSTGRES_DB={{ DEV_DB }} \
+            -e POSTGRES_USER={{ DEV_USER }} \
+            -e POSTGRES_PASSWORD={{ DEV_PASS }} \
+            -p {{ DEV_DB_PORT }}:5432 \
+            postgres:15
+        sleep 3
+        echo "Development database started on port {{ DEV_DB_PORT }}"
+    else
+        echo "Development database already running"
+    fi
+
+# Start test database container
+[group('db')]
+start-test-db:
+    #!/usr/bin/env sh
+    if ! docker ps --format json | jq -r .Names | grep -q "^{{ TEST_CONTAINER }}$"; then
+        echo "Starting test database..."
+        docker run --rm -d --name {{ TEST_CONTAINER }} \
+            -e POSTGRES_DB={{ TEST_DB }} \
+            -e POSTGRES_USER={{ TEST_USER }} \
+            -e POSTGRES_PASSWORD={{ TEST_PASS }} \
+            -p {{ TEST_DB_PORT }}:5432 \
+            postgres:15
+        sleep 3
+        echo "Test database started on port {{ TEST_DB_PORT }}"
+    else
+        echo "Test database already running"
+    fi
+
+# Stop development database container
+[group('db')]
+stop-dev-db:
+    #!/usr/bin/env sh
+    if ! docker ps --format json | jq -r .Names | grep -q "^{{ DEV_CONTAINER }}$"; then
+        echo "Stopping development database..."
+        docker stop {{ DEV_CONTAINER }}
+        echo "Development database stopped"
+    else
+        echo "Development database not running"
+    fi
+
+# Stop test database container
+[group('db')]
+stop-test-db:
+    #!/usr/bin/env sh
+    if docker ps --format json | jq -r .Names | grep -q "^{{ TEST_CONTAINER }}$"; then
+        echo "Stopping test database..."
+        docker stop {{ TEST_CONTAINER }}
+        echo "Test database stopped"
+    else
+        echo "Test database not running"
+    fi
+
+# Stop all database containers
+[group('db')]
+stop-all-db:
+    just stop-dev-db
+    just stop-test-db
+
+# Show database container status
+[group('db')]
+db-status:
+    #!/usr/bin/env sh
+    echo "Database container status:"
+    echo "========================="
+    if docker ps --format json | jq -r .Names | grep -q "^{{ DEV_CONTAINER }}$"; then
+        echo "Development DB: ✓ Running (port {{ DEV_DB_PORT }})"
+    else
+        echo "Development DB: ✗ Stopped"
+    fi
+    if docker ps --format json | jq -r .Names | grep -q "^{{ TEST_CONTAINER }}$"; then
+        echo "Test DB:        ✓ Running (port {{ TEST_DB_PORT }})"
+    else
+        echo "Test DB:        ✗ Stopped"
     fi

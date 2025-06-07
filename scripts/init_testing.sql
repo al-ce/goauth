@@ -1,7 +1,5 @@
 -- init_db.sql
 
-DROP DATABASE IF EXISTS goauth_test;
-
 DO
 $do$
 BEGIN
