@@ -4,7 +4,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 
-	"godiscauth/internal/models"
+	"github.com/al-ce/goauth/internal/models"
 )
 
 // Migrate automigrates the database according to the User and Session models

@@ -9,10 +9,10 @@ import (
 	passwordvalidator "github.com/wagslane/go-password-validator"
 	"golang.org/x/crypto/bcrypt"
 
-	"godiscauth/internal/models"
-	"godiscauth/internal/repository"
-	"godiscauth/pkg/apperrors"
-	"godiscauth/pkg/config"
+	"github.com/al-ce/goauth/internal/models"
+	"github.com/al-ce/goauth/internal/repository"
+	"github.com/al-ce/goauth/pkg/apperrors"
+	"github.com/al-ce/goauth/pkg/config"
 )
 
 // UserService is a struct that contains the repositories needed for user-related operations

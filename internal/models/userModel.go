@@ -8,8 +8,8 @@ import (
 	passwordvalidator "github.com/wagslane/go-password-validator"
 	"golang.org/x/crypto/bcrypt"
 
-	"godiscauth/pkg/apperrors"
-	"godiscauth/pkg/config"
+	"github.com/al-ce/goauth/pkg/apperrors"
+	"github.com/al-ce/goauth/pkg/config"
 )
 
 // User represents a user in the `users` table.

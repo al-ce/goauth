@@ -11,11 +11,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/matryer/is"
 
-	"godiscauth/internal/middleware"
-	"godiscauth/internal/models"
-	"godiscauth/internal/repository"
-	"godiscauth/internal/testutils"
-	"godiscauth/pkg/config"
+	"github.com/al-ce/goauth/internal/middleware"
+	"github.com/al-ce/goauth/internal/models"
+	"github.com/al-ce/goauth/internal/repository"
+	"github.com/al-ce/goauth/internal/testutils"
+	"github.com/al-ce/goauth/pkg/config"
 )
 
 func TestMiddlewareAuth_RequireAuth(t *testing.T) {

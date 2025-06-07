@@ -9,8 +9,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"godiscauth/pkg/apperrors"
-	"godiscauth/pkg/config"
+	"github.com/al-ce/goauth/pkg/apperrors"
+	"github.com/al-ce/goauth/pkg/config"
 )
 
 // Session represents a session in the `sessions` table

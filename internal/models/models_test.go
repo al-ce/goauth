@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"godiscauth/internal/testutils"
+	"github.com/al-ce/goauth/internal/testutils"
 )
 
 // TestMain sets up the test environment for all tests in the `models_test` package.

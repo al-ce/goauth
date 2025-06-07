@@ -6,8 +6,8 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	"godiscauth/internal/models"
-	"godiscauth/pkg/apperrors"
+	"github.com/al-ce/goauth/internal/models"
+	"github.com/al-ce/goauth/pkg/apperrors"
 )
 
 // SessionRepository represents the entry point into the database for managing

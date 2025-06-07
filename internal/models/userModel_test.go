@@ -6,9 +6,9 @@ import (
 	"github.com/matryer/is"
 	"golang.org/x/crypto/bcrypt"
 
-	"godiscauth/internal/models"
-	"godiscauth/internal/testutils"
-	"godiscauth/pkg/apperrors"
+	"github.com/al-ce/goauth/internal/models"
+	"github.com/al-ce/goauth/internal/testutils"
+	"github.com/al-ce/goauth/pkg/apperrors"
 )
 
 // TestNewUser tests new user creation in the `models` package.

@@ -9,8 +9,8 @@ import (
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 
-	"godiscauth/internal/repository"
-	"godiscauth/pkg/config"
+	"github.com/al-ce/goauth/internal/repository"
+	"github.com/al-ce/goauth/pkg/config"
 )
 
 // StartJobs starts jobs with a context from main

@@ -5,7 +5,7 @@ import (
 
 	"github.com/matryer/is"
 
-	"godiscauth/internal/database"
+	"github.com/al-ce/goauth/internal/database"
 )
 
 // TestConnectToDB tests the connection to the database.

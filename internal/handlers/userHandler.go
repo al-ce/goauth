@@ -7,9 +7,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
 
-	"godiscauth/internal/services"
-	"godiscauth/pkg/apperrors"
-	"godiscauth/pkg/config"
+	"github.com/al-ce/goauth/internal/services"
+	"github.com/al-ce/goauth/pkg/apperrors"
+	"github.com/al-ce/goauth/pkg/config"
 )
 
 type UserHandler struct {

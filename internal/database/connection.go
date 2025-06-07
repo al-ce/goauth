@@ -7,7 +7,7 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
-	"godiscauth/pkg/config"
+	"github.com/al-ce/goauth/pkg/config"
 )
 
 // NewDB creates a new database connection using GORM and PostgreSQL.

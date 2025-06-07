@@ -13,12 +13,12 @@ import (
 	passwordvalidator "github.com/wagslane/go-password-validator"
 	"gorm.io/gorm"
 
-	_ "godiscauth/docs"
-	"godiscauth/internal/database"
-	"godiscauth/internal/jobs"
-	"godiscauth/internal/server"
-	"godiscauth/pkg/config"
-	"godiscauth/pkg/logger"
+	_ "github.com/al-ce/goauth/docs"
+	"github.com/al-ce/goauth/internal/database"
+	"github.com/al-ce/goauth/internal/jobs"
+	"github.com/al-ce/goauth/internal/server"
+	"github.com/al-ce/goauth/pkg/config"
+	"github.com/al-ce/goauth/pkg/logger"
 )
 
 // main is the entry point for the auth service. It sets up the logger,

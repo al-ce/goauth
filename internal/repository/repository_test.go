@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"godiscauth/internal/testutils"
+	"github.com/al-ce/goauth/internal/testutils"
 )
 
 func TestMain(m *testing.M) {

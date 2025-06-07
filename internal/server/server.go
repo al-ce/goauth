@@ -14,12 +14,12 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"gorm.io/gorm"
 
-	"godiscauth/internal/handlers"
-	"godiscauth/internal/middleware"
-	"godiscauth/internal/repository"
-	"godiscauth/internal/services"
-	"godiscauth/pkg/apperrors"
-	"godiscauth/pkg/config"
+	"github.com/al-ce/goauth/internal/handlers"
+	"github.com/al-ce/goauth/internal/middleware"
+	"github.com/al-ce/goauth/internal/repository"
+	"github.com/al-ce/goauth/internal/services"
+	"github.com/al-ce/goauth/pkg/apperrors"
+	"github.com/al-ce/goauth/pkg/config"
 )
 
 // APIServer represents the API server with a gin router.

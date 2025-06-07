@@ -7,9 +7,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/matryer/is"
 
-	"godiscauth/internal/models"
-	"godiscauth/internal/testutils"
-	"godiscauth/pkg/apperrors"
+	"github.com/al-ce/goauth/internal/models"
+	"github.com/al-ce/goauth/internal/testutils"
+	"github.com/al-ce/goauth/pkg/apperrors"
 )
 
 // TestSessionModel_NewSession tests new Session creation in the `models`

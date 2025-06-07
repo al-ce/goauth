@@ -8,10 +8,10 @@ import (
 	"github.com/matryer/is"
 	"gorm.io/gorm"
 
-	"godiscauth/internal/models"
-	"godiscauth/internal/repository"
-	"godiscauth/internal/testutils"
-	"godiscauth/pkg/apperrors"
+	"github.com/al-ce/goauth/internal/models"
+	"github.com/al-ce/goauth/internal/repository"
+	"github.com/al-ce/goauth/internal/testutils"
+	"github.com/al-ce/goauth/pkg/apperrors"
 )
 
 // TestSessionRepository_NewSessionRepository tests creation of SessionRepository

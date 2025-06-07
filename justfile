@@ -10,13 +10,13 @@
 
 set quiet := true
 
-PROJECT := "godiscauth"
+PROJECT := "goauth"
 
 # credentials
 
-DEV_DB := "godiscauth"
-DEV_USER := "godiscauth"
-DEV_PASS := "godiscauth"
+DEV_DB := "goauth"
+DEV_USER := "goauth"
+DEV_PASS := "goauth"
 TEST_DB := "goauth_test"
 TEST_USER := "goauth_test"
 TEST_PASS := "goauth_test"
@@ -119,6 +119,7 @@ deleteaccount email=(def_user):
 [group('dev')]
 watch:
     #!/usr/bin/env sh
+    just init
     export SESSION_KEY=$(date | sha256sum | cut -d' ' -f1)
     export AUTH_SERVER_PORT={{ PORT }}
     export DATABASE_URL="{{ DRIVER }}://{{ DEV_USER }}:{{ DEV_PASS }}@{{ HOST }}:{{ DB_PORT }}/{{ DEV_DB }}"

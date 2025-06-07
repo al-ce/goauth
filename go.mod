@@ -1,4 +1,4 @@
-module godiscauth
+module github.com/al-ce/goauth
 
 go 1.24.2
 

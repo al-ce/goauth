@@ -10,12 +10,12 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
-	"godiscauth/internal/models"
-	"godiscauth/internal/repository"
-	"godiscauth/internal/services"
-	"godiscauth/internal/testutils"
-	"godiscauth/pkg/apperrors"
-	"godiscauth/pkg/config"
+	"github.com/al-ce/goauth/internal/models"
+	"github.com/al-ce/goauth/internal/repository"
+	"github.com/al-ce/goauth/internal/services"
+	"github.com/al-ce/goauth/internal/testutils"
+	"github.com/al-ce/goauth/pkg/apperrors"
+	"github.com/al-ce/goauth/pkg/config"
 )
 
 // TestUserService_NewUserService tests the creation of a new UserService

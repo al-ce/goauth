@@ -13,8 +13,8 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
-	"godiscauth/internal/database"
-	"godiscauth/pkg/config"
+	"github.com/al-ce/goauth/internal/database"
+	"github.com/al-ce/goauth/pkg/config"
 )
 
 const TestingPassword = "correcthorsebatterystaple"

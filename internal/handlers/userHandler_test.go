@@ -12,14 +12,14 @@ import (
 	"github.com/google/uuid"
 	"github.com/matryer/is"
 
-	"godiscauth/internal/handlers"
-	"godiscauth/internal/models"
-	"godiscauth/internal/repository"
-	"godiscauth/internal/server"
-	"godiscauth/internal/services"
-	"godiscauth/internal/testutils"
-	"godiscauth/pkg/apperrors"
-	"godiscauth/pkg/config"
+	"github.com/al-ce/goauth/internal/handlers"
+	"github.com/al-ce/goauth/internal/models"
+	"github.com/al-ce/goauth/internal/repository"
+	"github.com/al-ce/goauth/internal/server"
+	"github.com/al-ce/goauth/internal/services"
+	"github.com/al-ce/goauth/internal/testutils"
+	"github.com/al-ce/goauth/pkg/apperrors"
+	"github.com/al-ce/goauth/pkg/config"
 )
 
 // TestHandlers_NewUserHandler checks the NewUserHandler constructor returns a valid UsrHandler

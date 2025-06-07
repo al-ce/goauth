@@ -9,8 +9,8 @@ import (
 
 	"github.com/matryer/is"
 
-	"godiscauth/internal/server"
-	"godiscauth/internal/testutils"
+	"github.com/al-ce/goauth/internal/server"
+	"github.com/al-ce/goauth/internal/testutils"
 )
 
 // TestMain sets up the test environment for all tests in the `server_test` package.

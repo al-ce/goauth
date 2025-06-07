@@ -5,21 +5,21 @@ $do$
 BEGIN
    IF NOT EXISTS (
       SELECT FROM pg_catalog.pg_roles
-      WHERE  rolname = 'godiscauth') THEN
-      CREATE USER godiscauth WITH PASSWORD 'godiscauth';
+      WHERE  rolname = 'goauth') THEN
+      CREATE USER goauth WITH PASSWORD 'goauth';
    END IF;
 END
 $do$;
 
-CREATE DATABASE godiscauth WITH OWNER godiscauth ENCODING 'UTF8';
+CREATE DATABASE goauth WITH OWNER goauth ENCODING 'UTF8';
 
-\connect godiscauth
+\connect goauth
 
-ALTER DATABASE godiscauth SET timezone TO 'UTC';
+ALTER DATABASE goauth SET timezone TO 'UTC';
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-GRANT ALL PRIVILEGES ON DATABASE godiscauth TO godiscauth;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO godiscauth;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO godiscauth;
-GRANT ALL PRIVILEGES ON SCHEMA public TO godiscauth;
+GRANT ALL PRIVILEGES ON DATABASE goauth TO goauth;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO goauth;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO goauth;
+GRANT ALL PRIVILEGES ON SCHEMA public TO goauth;
