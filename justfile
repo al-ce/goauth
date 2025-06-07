@@ -143,7 +143,7 @@ test path="":
     export DATABASE_URL="{{ DRIVER }}://{{ TEST_USER }}:{{ TEST_PASS }}@{{ HOST }}:{{ TEST_DB_PORT }}/{{ TEST_DB }}"
     go clean -testcache | exit 1
     if [ -z "{{ path }}" ]; then
-        go test -v -json ./... | gotestfmt -hide successful-tests
+        go test -p 1 -v -json ./... | gotestfmt
     else
         go test -v -json ./internal/{{ path }} | gotestfmt -hide successful-tests
     fi

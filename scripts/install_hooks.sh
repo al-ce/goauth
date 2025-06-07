@@ -17,7 +17,7 @@ sleep 3
 PGHOST=localhost PGPORT=5433 PGUSER=goauth_test PGPASSWORD=goauth_test \
     psql -f scripts/init_testing.sql || exit 1
 
-go test ./...
+go test -p 1 ./...
 TEST_RESULT=$?
 
 docker stop goauth-test-db
