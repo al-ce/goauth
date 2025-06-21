@@ -116,14 +116,7 @@ func TestUserHandler_Login(t *testing.T) {
 		is.Equal(rr.Code, http.StatusOK)
 
 		// Check cookie is set
-		cookies := rr.Result().Cookies()
-		var sessionCookie *http.Cookie
-		for _, cookie := range cookies {
-			if cookie.Name == config.SessionCookieName {
-				sessionCookie = cookie
-				break
-			}
-		}
+		sessionCookie := getSessionCookie(rr)
 		is.True(sessionCookie != nil)
 
 		// Session Token is valid
@@ -210,13 +203,7 @@ func TestUserHandler_Logout(t *testing.T) {
 		is.NoErr(err)
 
 		// Get cookie
-		var sessionCookie *http.Cookie
-		for _, cookie := range loginRR.Result().Cookies() {
-			if cookie.Name == config.SessionCookieName {
-				sessionCookie = cookie
-				break
-			}
-		}
+		sessionCookie := getSessionCookie(loginRR)
 		is.True(sessionCookie != nil)
 
 		// Logout
@@ -228,13 +215,7 @@ func TestUserHandler_Logout(t *testing.T) {
 		is.Equal(rr.Code, http.StatusOK)
 
 		// Check cookie is cleared
-		var logoutCookie *http.Cookie
-		for _, cookie := range rr.Result().Cookies() {
-			if cookie.Name == config.SessionCookieName {
-				logoutCookie = cookie
-				break
-			}
-		}
+		logoutCookie := getSessionCookie(rr)
 		is.True(logoutCookie != nil)
 		is.Equal(logoutCookie.MaxAge, -1)
 
@@ -286,9 +267,6 @@ func TestUserHandler_LogoutEverywhere(t *testing.T) {
 	err = server.DB.Create(user).Error
 	is.NoErr(err)
 
-	var firstToken string
-	var secondToken string
-
 	// Login on one "device"
 	rr, err := makeRequest(
 		server.Router,
@@ -300,13 +278,9 @@ func TestUserHandler_LogoutEverywhere(t *testing.T) {
 	is.Equal(rr.Code, http.StatusOK)
 
 	// Get token from cookies
-	cookies := rr.Result().Cookies()
-	for _, cookie := range cookies {
-		if cookie.Name == config.SessionCookieName {
-			firstToken = cookie.Value
-			break
-		}
-	}
+	firstCookie := getSessionCookie(rr)
+	is.True(firstCookie != nil)
+	firstToken := firstCookie.Value
 	is.True(firstToken != "")
 
 	// Login on another "device"
@@ -320,13 +294,9 @@ func TestUserHandler_LogoutEverywhere(t *testing.T) {
 	is.Equal(rr.Code, http.StatusOK)
 
 	// Get token from cookies
-	cookies = rr.Result().Cookies()
-	for _, cookie := range cookies {
-		if cookie.Name == config.SessionCookieName {
-			secondToken = cookie.Value
-			break
-		}
-	}
+	secondCookie := getSessionCookie(rr)
+	is.True(secondCookie != nil)
+	secondToken := secondCookie.Value
 	is.True(secondToken != "")
 	is.True(firstToken != secondToken)
 
@@ -335,13 +305,7 @@ func TestUserHandler_LogoutEverywhere(t *testing.T) {
 		is.NoErr(err)
 
 		// Add auth cookie
-		req.AddCookie(&http.Cookie{
-			Name:     config.SessionCookieName,
-			Value:    firstToken,
-			Path:     "/",
-			HttpOnly: true,
-			Secure:   true,
-		})
+		req.AddCookie(firstCookie)
 
 		// Logout everywhere
 		rr := httptest.NewRecorder()
@@ -349,13 +313,7 @@ func TestUserHandler_LogoutEverywhere(t *testing.T) {
 		is.Equal(rr.Code, http.StatusOK)
 
 		// Cookie is cleared
-		var clearedCookie *http.Cookie
-		for _, cookie := range rr.Result().Cookies() {
-			if cookie.Name == config.SessionCookieName {
-				clearedCookie = cookie
-				break
-			}
-		}
+		clearedCookie := getSessionCookie(rr)
 		is.True(clearedCookie != nil)
 		is.Equal(clearedCookie.MaxAge, -1) // Cookie should be expired
 
@@ -368,13 +326,7 @@ func TestUserHandler_LogoutEverywhere(t *testing.T) {
 		// Check first token is invalidated
 		req, err = http.NewRequest("POST", "/logouteverywhere", nil)
 		is.NoErr(err)
-		req.AddCookie(&http.Cookie{
-			Name:     config.SessionCookieName,
-			Value:    firstToken,
-			Path:     "/",
-			HttpOnly: true,
-			Secure:   true,
-		})
+		req.AddCookie(firstCookie)
 		rr = httptest.NewRecorder()
 		server.Router.ServeHTTP(rr, req)
 		is.Equal(rr.Code, http.StatusUnauthorized)
@@ -382,13 +334,7 @@ func TestUserHandler_LogoutEverywhere(t *testing.T) {
 		// Check second token is invalidated
 		req, err = http.NewRequest("POST", "/logouteverywhere", nil)
 		is.NoErr(err)
-		req.AddCookie(&http.Cookie{
-			Name:     config.SessionCookieName,
-			Value:    secondToken,
-			Path:     "/",
-			HttpOnly: true,
-			Secure:   true,
-		})
+		req.AddCookie(secondCookie)
 		rr = httptest.NewRecorder()
 		server.Router.ServeHTTP(rr, req)
 		is.Equal(rr.Code, http.StatusUnauthorized)
@@ -500,8 +446,6 @@ func TestUserHandler_UpdateUser(t *testing.T) {
 	err = server.DB.Create(user).Error
 	is.NoErr(err)
 
-	var sessionToken string
-
 	// Login test user
 	_rr, err := makeRequest(
 		server.Router,
@@ -513,13 +457,9 @@ func TestUserHandler_UpdateUser(t *testing.T) {
 	is.Equal(_rr.Code, http.StatusOK)
 
 	// Get token from cookies
-	cookies := _rr.Result().Cookies()
-	for _, cookie := range cookies {
-		if cookie.Name == config.SessionCookieName {
-			sessionToken = cookie.Value
-			break
-		}
-	}
+	sessionCookie := getSessionCookie(_rr)
+	is.True(sessionCookie != nil)
+	sessionToken := sessionCookie.Value
 	is.True(sessionToken != "")
 
 	t.Run("update email and password", func(t *testing.T) {
@@ -539,23 +479,13 @@ func TestUserHandler_UpdateUser(t *testing.T) {
 		req.Header.Set("Content-Type", "application/json")
 
 		// Get token from cookies
-		cookies := _rr.Result().Cookies()
-		for _, cookie := range cookies {
-			if cookie.Name == config.SessionCookieName {
-				sessionToken = cookie.Value
-				break
-			}
-		}
+		sessionCookie := getSessionCookie(_rr)
+		is.True(sessionCookie != nil)
+		sessionToken := sessionCookie.Value
 		is.True(sessionToken != "")
 
 		// Add auth cookie to update request
-		req.AddCookie(&http.Cookie{
-			Name:     config.SessionCookieName,
-			Value:    sessionToken,
-			Path:     "/",
-			HttpOnly: true,
-			Secure:   true,
-		})
+		req.AddCookie(sessionCookie)
 
 		// Make request
 		rr := httptest.NewRecorder()
@@ -585,13 +515,7 @@ func TestUserHandler_UpdateUser(t *testing.T) {
 		req.Header.Set("Content-Type", "application/json")
 
 		// Add auth cookie
-		req.AddCookie(&http.Cookie{
-			Name:     config.SessionCookieName,
-			Value:    sessionToken,
-			Path:     "/",
-			HttpOnly: true,
-			Secure:   true,
-		})
+		req.AddCookie(sessionCookie)
 
 		// Make request
 		rr := httptest.NewRecorder()
@@ -682,4 +606,15 @@ func makeRequest(router *gin.Engine, method, path string, body any) (*httptest.R
 	router.ServeHTTP(rr, req)
 
 	return rr, nil
+}
+
+func getSessionCookie(rr *httptest.ResponseRecorder) *http.Cookie {
+	var sessionCookie *http.Cookie
+	for _, cookie := range rr.Result().Cookies() {
+		if cookie.Name == config.SessionCookieName {
+			sessionCookie = cookie
+			break
+		}
+	}
+	return sessionCookie
 }
