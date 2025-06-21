@@ -12,7 +12,7 @@ const AuthServerPort = "AUTH_SERVER_PORT"
 const SessionKey = "SESSION_KEY"
 
 // SessionCookieName is the env variable name used to set the cookie for sessions
-const SessionCookieName = "DISCUSSION_APP_SESSION_COOKIE"
+const SessionCookieName = "GOAUTH_SERVICE_SESSION_COOKIE"
 
 const CorsAllowedOrigins = "CORS_ALLOWED_ORIGINS"
 
