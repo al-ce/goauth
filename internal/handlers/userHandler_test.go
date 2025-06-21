@@ -548,6 +548,57 @@ func TestUserHandler_UpdateUser(t *testing.T) {
 	})
 }
 
+func TestHandlers_WhoAmi(t *testing.T) {
+	is := is.New(t)
+	server := setupServer(t)
+
+	t.Run("unauthorized when not logged in", func(t *testing.T) {
+		rr, err := makeRequest(
+			server.Router,
+			"GET",
+			"/whoami",
+			UserCredentialsRequest{Password: testutils.TestingPassword},
+		)
+		is.NoErr(err)
+		is.Equal(rr.Code, http.StatusUnauthorized)
+	})
+
+	t.Run("gets login JSON data for logged in user", func(t *testing.T) {
+		// Register a test user
+		email := "testUserHandlerWhoAmI@test.com"
+		user, err := models.NewUser(email, testutils.TestingPassword)
+		is.NoErr(err)
+		err = server.DB.Create(user).Error
+		is.NoErr(err)
+		// Login test user
+		loginRR, err := makeRequest(
+			server.Router,
+			"POST",
+			"/login",
+			UserCredentialsRequest{Email: email, Password: testutils.TestingPassword},
+		)
+		is.NoErr(err)
+
+		// Get cookie
+		sessionCookie := getSessionCookie(loginRR)
+		is.True(sessionCookie != nil)
+
+		// Get whoami data
+		req, err := http.NewRequest("GET", "/whoami", nil)
+		is.NoErr(err)
+		req.AddCookie(sessionCookie)
+		whoamiRR := httptest.NewRecorder()
+		server.Router.ServeHTTP(whoamiRR, req)
+		is.Equal(whoamiRR.Code, http.StatusOK)
+
+		// Check response message
+		var response map[string]string
+		err = json.NewDecoder(whoamiRR.Body).Decode(&response)
+		is.NoErr(err)
+		is.Equal(response["email"], email)
+	})
+}
+
 func setupUserHandler(t *testing.T) *handlers.UserHandler {
 	t.Helper()
 
