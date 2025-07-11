@@ -258,7 +258,7 @@ start-test-db:
 [group('db')]
 stop-dev-db:
     #!/usr/bin/env sh
-    if ! docker ps --format json | jq -r .Names | grep -q "^{{ DEV_CONTAINER }}$"; then
+    if docker ps --format json | jq -r .Names | grep -q "^{{ DEV_CONTAINER }}$"; then
         echo "Stopping development database..."
         docker stop {{ DEV_CONTAINER }}
         echo "Development database stopped"
